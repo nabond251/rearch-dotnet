@@ -2,20 +2,19 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
-namespace Rearch.Tests
+namespace Rearch.Tests;
+
+/// <summary>
+/// Test basic rearch functionality.
+/// </summary>
+public class BasicTest
 {
     /// <summary>
-    /// Test basic rearch functionality.
+    /// Basic count example.
     /// </summary>
-    public class BasicTest
+    [Fact]
+    public void BasicCountExample()
     {
-        /// <summary>
-        /// Basic count example.
-        /// </summary>
-        [Fact]
-        public void BasicCountExample()
-        {
-            Assert.Fail("stub");
-        }
+        Assert.Fail("stub");
     }
 }
