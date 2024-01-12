@@ -40,7 +40,7 @@ public interface ISideEffectApi
 /// </summary>
 public class Container : IDisposable
 {
-    private readonly Dictionary<Capsule<object>, CapsuleManager<object>> capsules = [];
+    private readonly Dictionary<object, UntypedCapsuleManager> capsules = [];
 
     /// <inheritdoc/>
     public void Dispose()
@@ -62,7 +62,7 @@ public class Container : IDisposable
         if (disposing)
         {
             // We need ToList() to prevent container modification during iteration
-            foreach (var manager in this.capsules.Values.ToList())
+            foreach (var manager in this.capsules.Values.Cast<IDisposable>().ToList())
             {
                 manager.Dispose();
             }
@@ -71,30 +71,24 @@ public class Container : IDisposable
 
     private CapsuleManager<T> Manager<T>(Capsule<T> capsule)
     {
-        if (!this.capsules.ContainsKey(capsule as Capsule<object>))
+        if (!this.capsules.ContainsKey(capsule))
         {
-            this.capsules[capsule as Capsule<object>] =
-                new CapsuleManager<T>(this, capsule) as CapsuleManager<object>;
+            this.capsules[capsule] = new CapsuleManager<T>(this, capsule);
         }
 
-        return this.capsules[capsule as Capsule<object>] as CapsuleManager<T>;
+        return this.capsules[capsule] as CapsuleManager<T>;
     }
 
-    private class CapsuleManager<T> : DataflowGraphNode, ISideEffectApi
+    private abstract class UntypedCapsuleManager : DataflowGraphNode, ISideEffectApi
     {
-        public CapsuleManager(Container container, Capsule<T> capsule)
+        protected UntypedCapsuleManager(Container container)
         {
             this.Container = container;
-            this.Capsule = capsule;
-
-            this.BuildSelf();
         }
 
         public Container Container { get; }
-        public Capsule<T> Capsule { get; }
 
-        public T Data { get; private set; }
-        public bool HasBuilt { get; private set; } = false;
+        public bool HasBuilt { get; protected set; } = false;
         public List<object?> SideEffectData { get; } = [];
         public HashSet<SideEffectApiCallback> ToDispose { get; } = [];
 
@@ -105,34 +99,7 @@ public class Container : IDisposable
             return otherManager.Data;
         }
 
-        public override bool BuildSelf()
-        {
-            // Clear dependency relationships as they will be repopulated via `read`
-            this.ClearDependencies();
-
-            // Build the capsule's new data
-            var newData = this.Capsule(new CapsuleHandleImpl(this as CapsuleManager<object>));
-            var didChange = !this.HasBuilt || !EqualityComparer<T>.Default.Equals(newData, this.Data);
-            this.Data = newData;
-            this.HasBuilt = true;
-            return didChange;
-        }
-
         public override bool IsSuperPure => this.SideEffectData.Count == 0;
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                this.Container.capsules.Remove(this.Capsule as Capsule<object>);
-                foreach (var callback in this.ToDispose)
-                {
-                    callback();
-                }
-            }
-        }
 
         public void Rebuild() => this.BuildSelfAndDependents();
 
@@ -143,14 +110,56 @@ public class Container : IDisposable
             this.ToDispose.Remove(callback);
     }
 
+    private class CapsuleManager<T> : UntypedCapsuleManager
+    {
+        public CapsuleManager(Container container, Capsule<T> capsule)
+            : base(container)
+        {
+            this.Capsule = capsule;
+
+            this.BuildSelf();
+        }
+
+        public Capsule<T> Capsule { get; }
+
+        public T Data { get; private set; }
+
+        public override bool BuildSelf()
+        {
+            // Clear dependency relationships as they will be repopulated via `read`
+            this.ClearDependencies();
+
+            // Build the capsule's new data
+            var newData = this.Capsule(new CapsuleHandleImpl(this));
+            var didChange = !this.HasBuilt || !EqualityComparer<T>.Default.Equals(newData, this.Data);
+            this.Data = newData;
+            this.HasBuilt = true;
+            return didChange;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                this.Container.capsules.Remove(this.Capsule);
+                foreach (var callback in this.ToDispose)
+                {
+                    callback();
+                }
+            }
+        }
+    }
+
     private class CapsuleHandleImpl : ICapsuleHandle
     {
-        public CapsuleHandleImpl(CapsuleManager<object> manager)
+        public CapsuleHandleImpl(UntypedCapsuleManager manager)
         {
             this.Manager = manager;
         }
 
-        public CapsuleManager<object> Manager { get; }
+        public UntypedCapsuleManager Manager { get; }
 
         public int SideEffectDataIndex { get; private set; } = 0;
 
