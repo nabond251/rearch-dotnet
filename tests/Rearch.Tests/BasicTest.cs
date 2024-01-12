@@ -15,6 +15,11 @@ public class BasicTest
     [Fact]
     public void BasicCountExample()
     {
-        Assert.Fail("stub");
+        int Count(ICapsuleHandle _) => 0;
+        int CountPlusOne(ICapsuleHandle use) => use.Call(Count) + 1;
+
+        using var container = new Container();
+        Assert.Equal(0, container.Read(Count));
+        Assert.Equal(1, container.Read(CountPlusOne));
     }
 }
