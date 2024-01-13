@@ -15,7 +15,7 @@ public interface ICapsuleReader
 
 public interface ISideEffectRegistrar
 {
-    T Register<T>(SideEffect<T> sideEffect) where T : class;
+    T Register<T>(SideEffect<T> sideEffect) where T : notnull;
 }
 
 public interface ICapsuleHandle : ICapsuleReader, ISideEffectRegistrar
@@ -165,14 +165,14 @@ public class Container : IDisposable
 
         public T Call<T>(Capsule<T> capsule) => this.Manager.Read(capsule);
 
-        public T Register<T>(SideEffect<T> sideEffect) where T : class
+        public T Register<T>(SideEffect<T> sideEffect) where T : notnull
         {
             if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
             {
                 this.Manager.SideEffectData.Add(sideEffect(this.Manager));
             }
 
-            return this.Manager.SideEffectData[this.SideEffectDataIndex++] as T;
+            return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++];
         }
     }
 }

@@ -16,7 +16,7 @@ public static class BuiltinSideEffectExtensions
         this ISideEffectRegistrar registrar,
         Func<T> init)
     {
-        var (getter, setter) = registrar.Register(api =>
+        var (getter, setter) = registrar.Register<(Func<T>, Action<T>)>(api =>
         {
             var state = init();
 
@@ -27,7 +27,7 @@ public static class BuiltinSideEffectExtensions
                 api.Rebuild();
             }
 
-            return Tuple.Create(Getter, Setter);
+            return (Getter, Setter);
         });
 
         return (getter(), setter);
