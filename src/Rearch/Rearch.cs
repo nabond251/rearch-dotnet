@@ -53,7 +53,19 @@ public class Container : IDisposable
 
     public ListenerHandle Listen(CapsuleListener listener)
     {
-        return new ListenerHandle();
+        // Create a temporary *impure* capsule so that it doesn't get super-pure
+        // garbage collected
+        object Capsule(ICapsuleHandle use)
+        {
+            use.Register(_ => new object());
+            listener(use);
+            return new object();
+        }
+
+        // Put the temporary capsule into the container so it gets data updates
+        this.Read(Capsule);
+
+        return new ListenerHandle(this, Capsule);
     }
 
     /// <summary>
@@ -184,6 +196,15 @@ public class Container : IDisposable
 
 public class ListenerHandle : IDisposable
 {
+    private readonly Container container;
+    private readonly object capsule;
+
+    internal ListenerHandle(Container container, object capsule)
+    {
+        this.container = container;
+        this.capsule = capsule;
+    }
+
     public void Dispose()
     {
         this.Dispose(true);
@@ -200,7 +221,7 @@ public class ListenerHandle : IDisposable
     {
         if (disposing)
         {
-            // stub
+            this.container.Manager(this.capsule).Dispose();
         }
     }
 }
