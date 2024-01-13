@@ -40,7 +40,7 @@ public interface ISideEffectApi
 /// </summary>
 public class Container : IDisposable
 {
-    private readonly Dictionary<object, UntypedCapsuleManager> capsules = [];
+    internal readonly Dictionary<object, UntypedCapsuleManager> capsules = [];
 
     /// <inheritdoc/>
     public void Dispose()
@@ -86,7 +86,7 @@ public class Container : IDisposable
         }
     }
 
-    private CapsuleManager<T> Manager<T>(Capsule<T> capsule)
+    internal CapsuleManager<T> Manager<T>(Capsule<T> capsule)
     {
         if (!this.capsules.ContainsKey(capsule))
         {
@@ -94,103 +94,6 @@ public class Container : IDisposable
         }
 
         return this.capsules[capsule] as CapsuleManager<T>;
-    }
-
-    private abstract class UntypedCapsuleManager : DataflowGraphNode, ISideEffectApi
-    {
-        protected UntypedCapsuleManager(Container container)
-        {
-            this.Container = container;
-        }
-
-        public Container Container { get; }
-
-        public bool HasBuilt { get; protected set; } = false;
-        public List<object?> SideEffectData { get; } = [];
-        public HashSet<SideEffectApiCallback> ToDispose { get; } = [];
-
-        public R Read<R>(Capsule<R> otherCapsule)
-        {
-            var otherManager = this.Container.Manager(otherCapsule);
-            this.AddDependency(otherManager);
-            return otherManager.Data;
-        }
-
-        public override bool IsSuperPure => this.SideEffectData.Count == 0;
-
-        public void Rebuild() => this.BuildSelfAndDependents();
-
-        public void RegisterDispose(SideEffectApiCallback callback) =>
-            this.ToDispose.Add(callback);
-
-        public void UnregisterDispose(SideEffectApiCallback callback) =>
-            this.ToDispose.Remove(callback);
-    }
-
-    private class CapsuleManager<T> : UntypedCapsuleManager
-    {
-        public CapsuleManager(Container container, Capsule<T> capsule)
-            : base(container)
-        {
-            this.Capsule = capsule;
-
-            this.BuildSelf();
-        }
-
-        public Capsule<T> Capsule { get; }
-
-        public T Data { get; private set; }
-
-        public override bool BuildSelf()
-        {
-            // Clear dependency relationships as they will be repopulated via `read`
-            this.ClearDependencies();
-
-            // Build the capsule's new data
-            var newData = this.Capsule(new CapsuleHandleImpl(this));
-            var didChange = !this.HasBuilt || !EqualityComparer<T>.Default.Equals(newData, this.Data);
-            this.Data = newData;
-            this.HasBuilt = true;
-            return didChange;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                this.Container.capsules.Remove(this.Capsule);
-                foreach (var callback in this.ToDispose)
-                {
-                    callback();
-                }
-            }
-        }
-    }
-
-    private class CapsuleHandleImpl : ICapsuleHandle
-    {
-        public CapsuleHandleImpl(UntypedCapsuleManager manager)
-        {
-            this.Manager = manager;
-        }
-
-        public UntypedCapsuleManager Manager { get; }
-
-        public int SideEffectDataIndex { get; private set; } = 0;
-
-        public T Call<T>(Capsule<T> capsule) => this.Manager.Read(capsule);
-
-        public T Register<T>(SideEffect<T> sideEffect) where T : notnull
-        {
-            if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
-            {
-                this.Manager.SideEffectData.Add(sideEffect(this.Manager));
-            }
-
-            return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++];
-        }
     }
 }
 
@@ -223,5 +126,102 @@ public class ListenerHandle : IDisposable
         {
             this.container.Manager(this.capsule).Dispose();
         }
+    }
+}
+
+internal abstract class UntypedCapsuleManager : DataflowGraphNode, ISideEffectApi
+{
+    protected UntypedCapsuleManager(Container container)
+    {
+        this.Container = container;
+    }
+
+    public Container Container { get; }
+
+    public bool HasBuilt { get; protected set; } = false;
+    public List<object?> SideEffectData { get; } = [];
+    public HashSet<SideEffectApiCallback> ToDispose { get; } = [];
+
+    public R Read<R>(Capsule<R> otherCapsule)
+    {
+        var otherManager = this.Container.Manager(otherCapsule);
+        this.AddDependency(otherManager);
+        return otherManager.Data;
+    }
+
+    public override bool IsSuperPure => this.SideEffectData.Count == 0;
+
+    public void Rebuild() => this.BuildSelfAndDependents();
+
+    public void RegisterDispose(SideEffectApiCallback callback) =>
+        this.ToDispose.Add(callback);
+
+    public void UnregisterDispose(SideEffectApiCallback callback) =>
+        this.ToDispose.Remove(callback);
+}
+
+internal class CapsuleManager<T> : UntypedCapsuleManager
+{
+    public CapsuleManager(Container container, Capsule<T> capsule)
+        : base(container)
+    {
+        this.Capsule = capsule;
+
+        this.BuildSelf();
+    }
+
+    public Capsule<T> Capsule { get; }
+
+    public T Data { get; private set; }
+
+    public override bool BuildSelf()
+    {
+        // Clear dependency relationships as they will be repopulated via `read`
+        this.ClearDependencies();
+
+        // Build the capsule's new data
+        var newData = this.Capsule(new CapsuleHandle(this));
+        var didChange = !this.HasBuilt || !EqualityComparer<T>.Default.Equals(newData, this.Data);
+        this.Data = newData;
+        this.HasBuilt = true;
+        return didChange;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+
+        if (disposing)
+        {
+            this.Container.capsules.Remove(this.Capsule);
+            foreach (var callback in this.ToDispose)
+            {
+                callback();
+            }
+        }
+    }
+}
+
+internal class CapsuleHandle : ICapsuleHandle
+{
+    public CapsuleHandle(UntypedCapsuleManager manager)
+    {
+        this.Manager = manager;
+    }
+
+    public UntypedCapsuleManager Manager { get; }
+
+    public int SideEffectDataIndex { get; private set; } = 0;
+
+    public T Call<T>(Capsule<T> capsule) => this.Manager.Read(capsule);
+
+    public T Register<T>(SideEffect<T> sideEffect) where T : notnull
+    {
+        if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
+        {
+            this.Manager.SideEffectData.Add(sideEffect(this.Manager));
+        }
+
+        return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++];
     }
 }
