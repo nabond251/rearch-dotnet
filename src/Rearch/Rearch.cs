@@ -51,6 +51,11 @@ public class Container : IDisposable
 
     public T Read<T>(Capsule<T> capsule) => this.Manager(capsule).Data;
 
+    public ListenerHandle Listen(CapsuleListener listener)
+    {
+        return new ListenerHandle();
+    }
+
     /// <summary>
     /// Implements the disposable pattern.
     /// </summary>
@@ -173,6 +178,29 @@ public class Container : IDisposable
             }
 
             return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++];
+        }
+    }
+}
+
+public class ListenerHandle : IDisposable
+{
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Implements the disposable pattern.
+    /// </summary>
+    /// <param name="disposing">
+    /// A value indicating whether this is being disposed.
+    /// </param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // stub
         }
     }
 }

@@ -2,6 +2,8 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
+using Newtonsoft.Json.Bson;
+
 namespace Rearch.Tests;
 
 /// <summary>
@@ -98,5 +100,35 @@ public class BasicTest
             Assert.Equal(1, s1);
             Assert.Equal(2, s2);
         }
+    }
+
+    [Fact]
+    public void ListenerGetsUpdates()
+    {
+        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
+
+        using var container = new Container();
+        void SetState(int state) => container.Read(Stateful).Item2(state);
+
+        List<int> states = [];
+        void Listener(ICapsuleReader use) => states.Add(use.Call(Stateful).Item1);
+
+        SetState(1);
+        var handle1 = container.Listen(Listener);
+        SetState(2);
+        SetState(3);
+
+        handle1.Dispose();
+        SetState(4);
+
+        SetState(5);
+        var handle2 = container.Listen(Listener);
+        SetState(6);
+        SetState(7);
+
+        handle2.Dispose();
+        SetState(8);
+
+        Assert.Equal([1, 2, 3, 5, 6, 7], states);
     }
 }
