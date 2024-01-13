@@ -4,13 +4,11 @@
 
 namespace Rearch;
 
-public delegate T Capsule<out T>(ICapsuleHandle capsuleHandle);
-
 public delegate void CapsuleListener(ICapsuleReader capsuleReader);
 
 public interface ICapsuleReader
 {
-    T Call<T>(Capsule<T> capsule);
+    T Call<T>(Func<ICapsuleHandle, T> capsule);
 }
 
 public interface ISideEffectRegistrar
@@ -49,7 +47,7 @@ public class Container : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public T Read<T>(Capsule<T> capsule) => this.Manager(capsule).Data;
+    public T Read<T>(Func<ICapsuleHandle, T> capsule) => this.Manager(capsule).Data;
 
     public ListenerHandle Listen(CapsuleListener listener)
     {
@@ -86,7 +84,7 @@ public class Container : IDisposable
         }
     }
 
-    internal CapsuleManager<T> Manager<T>(Capsule<T> capsule)
+    internal CapsuleManager<T> Manager<T>(Func<ICapsuleHandle, T> capsule)
     {
         if (!this.capsules.ContainsKey(capsule))
         {
@@ -100,9 +98,9 @@ public class Container : IDisposable
 public class ListenerHandle : IDisposable
 {
     private readonly Container container;
-    private readonly object capsule;
+    private readonly Func<ICapsuleHandle, object?> capsule;
 
-    internal ListenerHandle(Container container, object capsule)
+    internal ListenerHandle(Container container, Func<ICapsuleHandle, object?> capsule)
     {
         this.container = container;
         this.capsule = capsule;
@@ -142,7 +140,7 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode, ISideEffectAp
     public List<object?> SideEffectData { get; } = [];
     public HashSet<SideEffectApiCallback> ToDispose { get; } = [];
 
-    public R Read<R>(Capsule<R> otherCapsule)
+    public R Read<R>(Func<ICapsuleHandle, R> otherCapsule)
     {
         var otherManager = this.Container.Manager(otherCapsule);
         this.AddDependency(otherManager);
@@ -162,7 +160,7 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode, ISideEffectAp
 
 internal class CapsuleManager<T> : UntypedCapsuleManager
 {
-    public CapsuleManager(Container container, Capsule<T> capsule)
+    public CapsuleManager(Container container, Func<ICapsuleHandle, T> capsule)
         : base(container)
     {
         this.Capsule = capsule;
@@ -170,7 +168,7 @@ internal class CapsuleManager<T> : UntypedCapsuleManager
         this.BuildSelf();
     }
 
-    public Capsule<T> Capsule { get; }
+    public Func<ICapsuleHandle, T> Capsule { get; }
 
     public T Data { get; private set; }
 
@@ -213,7 +211,7 @@ internal class CapsuleHandle : ICapsuleHandle
 
     public int SideEffectDataIndex { get; private set; } = 0;
 
-    public T Call<T>(Capsule<T> capsule) => this.Manager.Read(capsule);
+    public T Call<T>(Func<ICapsuleHandle, T> capsule) => this.Manager.Read(capsule);
 
     public T Register<T>(SideEffect<T> sideEffect) where T : notnull
     {
