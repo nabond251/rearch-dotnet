@@ -43,7 +43,7 @@ internal abstract class DataflowGraphNode : IDisposable
     {
         foreach (var dep in this.dependencies)
         {
-            dep.dependencies.Remove(this);
+            dep.dependents.Remove(this);
         }
 
         dependencies.Clear();
