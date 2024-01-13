@@ -73,4 +73,30 @@ public class BasicTest
             Assert.Equal(2, statefulPlusOne);
         }
     }
+
+    [Fact]
+    public void MultipleSideEffects()
+    {
+        ((int, Action<int>), (int, Action<int>)) Multi(
+            ICapsuleHandle use)
+        {
+            return (use.State(0), use.State(1));
+        }
+
+        using var container = new Container();
+
+        {
+            var ((s1, set1), (s2, set2)) = container.Read(Multi);
+            Assert.Equal(0, s1);
+            Assert.Equal(1, s2);
+            set1(1);
+            set2(2);
+        }
+
+        {
+            var ((s1, set1), (s2, set2)) = container.Read(Multi);
+            Assert.Equal(1, s1);
+            Assert.Equal(2, s2);
+        }
+    }
 }
