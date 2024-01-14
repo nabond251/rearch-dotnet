@@ -26,7 +26,7 @@ public static class BuiltinSideEffectExtensions
     /// </summary>
     public static T Callonce<T>(
         this ISideEffectRegistrar registrar,
-        Func<T> callback) =>
+        Func<T> callback) where T : class =>
         registrar.Register((_) => callback());
 
     /// <summary>
@@ -35,11 +35,11 @@ public static class BuiltinSideEffectExtensions
     /// Similar to the `useState` hook from React;
     /// see https://react.dev/reference/react/useState.
     /// </summary>
-    public static (T, Action<T>) LazyState<T>(
+    public static Tuple<T, Action<T>> LazyState<T>(
         this ISideEffectRegistrar registrar,
         Func<T> init)
     {
-        var (getter, setter) = registrar.Register<(Func<T>, Action<T>)>(api =>
+        var (getter, setter) = registrar.Register<Tuple<Func<T>, Action<T>>>(api =>
         {
             var state = init();
 
@@ -50,10 +50,10 @@ public static class BuiltinSideEffectExtensions
                 api.Rebuild();
             }
 
-            return (Getter, Setter);
+            return Tuple.Create(Getter, Setter);
         });
 
-        return (getter(), setter);
+        return Tuple.Create(getter(), setter);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public static class BuiltinSideEffectExtensions
     /// Similar to the `useState` hook from React;
     /// see https://react.dev/reference/react/useState.
     /// </summary>
-    public static (T, Action<T>) State<T>(
+    public static Tuple<T, Action<T>> State<T>(
         this ISideEffectRegistrar registrar,
         T initial) =>
         registrar.LazyState(() => initial);
@@ -74,7 +74,7 @@ public static class BuiltinSideEffectExtensions
     /// </summary>
     public static T LazyValue<T>(
         this ISideEffectRegistrar registrar,
-        Func<T> init) =>
+        Func<T> init) where T : class =>
         registrar.Callonce(init);
 
     /// <summary>
@@ -85,7 +85,7 @@ public static class BuiltinSideEffectExtensions
     /// </summary>
     public static T Value<T>(
         this ISideEffectRegistrar registrar,
-        T initial) =>
+        T initial) where T : class =>
         registrar.LazyValue(() => initial);
 
     // TODO: other side effects

@@ -6,12 +6,12 @@ namespace Rearch;
 
 public interface ICapsuleReader
 {
-    T Call<T>(Func<ICapsuleHandle, T> capsule);
+    T Call<T>(Func<ICapsuleHandle, T> capsule) where T : class;
 }
 
 public interface ISideEffectRegistrar
 {
-    T Register<T>(Func<ISideEffectApi, T> sideEffect) where T : notnull;
+    T Register<T>(Func<ISideEffectApi, T> sideEffect) where T : class;
 }
 
 public interface ICapsuleHandle : ICapsuleReader, ISideEffectRegistrar
@@ -32,16 +32,21 @@ public interface ISideEffectApi
 /// </summary>
 public class Container : IDisposable
 {
-    internal readonly Dictionary<object, UntypedCapsuleManager> capsules = [];
+    internal readonly Dictionary<
+        Func<ICapsuleHandle, object?>,
+        CapsuleManager<object?>> capsules = [];
 
-    /// <inheritdoc/>
-    public void Dispose()
+    internal CapsuleManager<T> Manager<T>(Func<ICapsuleHandle, T> capsule) where T : class
     {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
+        if (!this.capsules.ContainsKey(capsule))
+        {
+            this.capsules[capsule] = new CapsuleManager<T>(this, capsule);
+        }
+
+        return this.capsules[capsule] as CapsuleManager<T>;
     }
 
-    public T Read<T>(Func<ICapsuleHandle, T> capsule) => this.Manager(capsule).Data;
+    public T Read<T>(Func<ICapsuleHandle, T> capsule) where T : class => this.Manager(capsule).Data;
 
     public ListenerHandle Listen(Action<ICapsuleReader> listener)
     {
@@ -60,6 +65,13 @@ public class Container : IDisposable
         return new ListenerHandle(this, Capsule);
     }
 
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
     /// <summary>
     /// Implements the disposable pattern.
     /// </summary>
@@ -71,21 +83,11 @@ public class Container : IDisposable
         if (disposing)
         {
             // We need ToList() to prevent container modification during iteration
-            foreach (var manager in this.capsules.Values.Cast<IDisposable>().ToList())
+            foreach (var manager in this.capsules.Values.ToList())
             {
                 manager.Dispose();
             }
         }
-    }
-
-    internal CapsuleManager<T> Manager<T>(Func<ICapsuleHandle, T> capsule)
-    {
-        if (!this.capsules.ContainsKey(capsule))
-        {
-            this.capsules[capsule] = new CapsuleManager<T>(this, capsule);
-        }
-
-        return this.capsules[capsule] as CapsuleManager<T>;
     }
 }
 
@@ -121,50 +123,31 @@ public class ListenerHandle : IDisposable
     }
 }
 
-internal abstract class UntypedCapsuleManager : DataflowGraphNode, ISideEffectApi
-{
-    protected UntypedCapsuleManager(Container container)
-    {
-        this.Container = container;
-    }
-
-    public Container Container { get; }
-
-    public bool HasBuilt { get; protected set; } = false;
-    public List<object?> SideEffectData { get; } = [];
-    public HashSet<Action> ToDispose { get; } = [];
-
-    public R Read<R>(Func<ICapsuleHandle, R> otherCapsule)
-    {
-        var otherManager = this.Container.Manager(otherCapsule);
-        this.AddDependency(otherManager);
-        return otherManager.Data;
-    }
-
-    public override bool IsSuperPure => this.SideEffectData.Count == 0;
-
-    public void Rebuild() => this.BuildSelfAndDependents();
-
-    public void RegisterDispose(Action callback) =>
-        this.ToDispose.Add(callback);
-
-    public void UnregisterDispose(Action callback) =>
-        this.ToDispose.Remove(callback);
-}
-
-internal class CapsuleManager<T> : UntypedCapsuleManager
+internal class CapsuleManager<T> : DataflowGraphNode,
+    ISideEffectApi where T : class
 {
     public CapsuleManager(Container container, Func<ICapsuleHandle, T> capsule)
-        : base(container)
     {
+        this.Container = container;
         this.Capsule = capsule;
 
         this.BuildSelf();
     }
 
+    public Container Container { get; }
     public Func<ICapsuleHandle, T> Capsule { get; }
 
     public T Data { get; private set; }
+    public bool HasBuilt { get; private set; } = false;
+    public List<object?> SideEffectData { get; } = [];
+    public HashSet<Action> ToDispose { get; } = [];
+
+    public R Read<R>(Func<ICapsuleHandle, R> otherCapsule) where R : class
+    {
+        var otherManager = this.Container.Manager(otherCapsule);
+        this.AddDependency(otherManager);
+        return otherManager.Data;
+    }
 
     public override bool BuildSelf()
     {
@@ -173,11 +156,13 @@ internal class CapsuleManager<T> : UntypedCapsuleManager
 
         // Build the capsule's new data
         var newData = this.Capsule(new CapsuleHandle(this));
-        var didChange = !this.HasBuilt || !EqualityComparer<T>.Default.Equals(newData, this.Data);
+        var didChange = !this.HasBuilt || newData != this.Data;
         this.Data = newData;
         this.HasBuilt = true;
         return didChange;
     }
+
+    public override bool IsSuperPure => this.SideEffectData.Count == 0;
 
     protected override void Dispose(bool disposing)
     {
@@ -192,28 +177,36 @@ internal class CapsuleManager<T> : UntypedCapsuleManager
             }
         }
     }
+
+    public void Rebuild() => this.BuildSelfAndDependents();
+
+    public void RegisterDispose(Action callback) =>
+        this.ToDispose.Add(callback);
+
+    public void UnregisterDispose(Action callback) =>
+        this.ToDispose.Remove(callback);
 }
 
 internal class CapsuleHandle : ICapsuleHandle
 {
-    public CapsuleHandle(UntypedCapsuleManager manager)
+    public CapsuleHandle(CapsuleManager<object?> manager)
     {
         this.Manager = manager;
     }
 
-    public UntypedCapsuleManager Manager { get; }
+    public CapsuleManager<object?> Manager { get; }
 
     public int SideEffectDataIndex { get; private set; } = 0;
 
-    public T Call<T>(Func<ICapsuleHandle, T> capsule) => this.Manager.Read(capsule);
+    public T Call<T>(Func<ICapsuleHandle, T> capsule) where T : class => this.Manager.Read(capsule);
 
-    public T Register<T>(Func<ISideEffectApi, T> sideEffect) where T : notnull
+    public T Register<T>(Func<ISideEffectApi, T> sideEffect) where T : class
     {
         if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
         {
             this.Manager.SideEffectData.Add(sideEffect(this.Manager));
         }
 
-        return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++];
+        return this.Manager.SideEffectData[this.SideEffectDataIndex++] as T;
     }
 }

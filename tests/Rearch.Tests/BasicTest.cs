@@ -2,10 +2,12 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
-using Newtonsoft.Json.Bson;
-using System.Runtime.Intrinsics.X86;
-
 namespace Rearch.Tests;
+
+record class Integer(int Value)
+{
+    public static implicit operator Integer(int value) => new(value);
+}
 
 /// <summary>
 /// Test basic rearch functionality.
@@ -18,8 +20,8 @@ public class BasicTest
     [Fact]
     public void BasicCountExample()
     {
-        int Count(ICapsuleHandle _) => 0;
-        int CountPlusOne(ICapsuleHandle use) => use.Call(Count) + 1;
+        Integer Count(ICapsuleHandle _) => 0;
+        Integer CountPlusOne(ICapsuleHandle use) => use.Call(Count).Value + 1;
 
         using var container = new Container();
         Assert.Equal(0, container.Read(Count));
@@ -29,8 +31,8 @@ public class BasicTest
     [Fact]
     public void StateUpdatesForStatefulCapsule()
     {
-        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
-        int PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1 + 1;
+        Tuple<Integer, Action<Integer>> Stateful(ICapsuleHandle use) => use.State(new Integer(0));
+        Integer PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1.Value + 1;
 
         using var container = new Container();
 
@@ -56,8 +58,8 @@ public class BasicTest
     [Fact]
     public void StateUpdatesForDependentCapsule()
     {
-        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
-        int PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1 + 1;
+        Tuple<Integer, Action<Integer>> Stateful(ICapsuleHandle use) => use.State(new Integer(0));
+        Integer PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1.Value + 1;
 
         using var container = new Container();
 
@@ -80,10 +82,10 @@ public class BasicTest
     [Fact]
     public void MultipleSideEffects()
     {
-        ((int, Action<int>), (int, Action<int>)) Multi(
+        Tuple<Tuple<Integer, Action<Integer>>, Tuple<Integer, Action<Integer>>> Multi(
             ICapsuleHandle use)
         {
-            return (use.State(0), use.State(1));
+            return Tuple.Create(use.State(new Integer(0)), use.State(new Integer(1)));
         }
 
         using var container = new Container();
@@ -106,12 +108,12 @@ public class BasicTest
     [Fact]
     public void ListenerGetsUpdates()
     {
-        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
+        Tuple<Integer, Action<Integer>> Stateful(ICapsuleHandle use) => use.State(new Integer(0));
 
         using var container = new Container();
-        void SetState(int state) => container.Read(Stateful).Item2(state);
+        void SetState(Integer state) => container.Read(Stateful).Item2(state);
 
-        List<int> states = [];
+        List<Integer> states = [];
         void Listener(ICapsuleReader use) => states.Add(use.Call(Stateful).Item1);
 
         SetState(1);
@@ -144,9 +146,9 @@ public class BasicTest
     [Fact]
     public void ComplexDependencyGraph()
     {
-        Dictionary<Func<ICapsuleHandle, object?>, int> builds = [];
+        Dictionary<Func<ICapsuleHandle, object?>, Integer> builds = [];
 
-        object? A(ICapsuleHandle use)
+        Tuple<Integer, Action<Integer>> A(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(A))
             {
@@ -154,13 +156,13 @@ public class BasicTest
             }
             else
             {
-                builds[A]++;
+                builds[A] = builds[A].Value + 1;
             }
 
-            return use.State(0);
+            return use.State(new Integer(0));
         }
 
-        object? B(ICapsuleHandle use)
+        Integer B(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(B))
             {
@@ -168,14 +170,14 @@ public class BasicTest
             }
             else
             {
-                builds[B]++;
+                builds[B] = builds[B].Value + 1;
             }
 
             use.Register(_ => new object());
-            return (((int, Action<int>))use.Call(A)).Item1;
+            return use.Call(A).Item1;
         }
 
-        object? H(ICapsuleHandle use)
+        Integer H(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(H))
             {
@@ -183,13 +185,13 @@ public class BasicTest
             }
             else
             {
-                builds[H]++;
+                builds[H] = builds[H].Value + 1;
             }
 
             return 1;
         }
 
-        object? E(ICapsuleHandle use)
+        Integer E(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(E))
             {
@@ -197,13 +199,13 @@ public class BasicTest
             }
             else
             {
-                builds[E]++;
+                builds[E] = builds[E].Value + 1;
             }
 
-            return (((int, Action<int>))use.Call(A)).Item1 + (int)use.Call(H);
+            return use.Call(A).Item1.Value + use.Call(H).Value;
         }
 
-        object? F(ICapsuleHandle use)
+        Integer F(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(F))
             {
@@ -211,14 +213,14 @@ public class BasicTest
             }
             else
             {
-                builds[F]++;
+                builds[F] = builds[F].Value + 1;
             }
 
             use.Register(_ => new object());
             return use.Call(E);
         }
 
-        object? C(ICapsuleHandle use)
+        Integer C(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(C))
             {
@@ -226,13 +228,13 @@ public class BasicTest
             }
             else
             {
-                builds[C]++;
+                builds[C] = builds[C].Value + 1;
             }
 
-            return (int)use.Call(B) + (int)use.Call(F);
+            return use.Call(B).Value + use.Call(F).Value;
         }
 
-        object? D(ICapsuleHandle use)
+        Integer D(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(D))
             {
@@ -240,13 +242,13 @@ public class BasicTest
             }
             else
             {
-                builds[D]++;
+                builds[D] = builds[D].Value + 1;
             }
 
             return use.Call(C);
         }
 
-        object? G(ICapsuleHandle use)
+        Integer G(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(G))
             {
@@ -254,17 +256,17 @@ public class BasicTest
             }
             else
             {
-                builds[G]++;
+                builds[G] = builds[G].Value + 1;
             }
 
-            return (int)use.Call(C) + (int)use.Call(F);
+            return use.Call(C).Value + use.Call(F).Value;
         }
 
         using var container = new Container();
         Assert.True(builds.Count == 0);
 
-        Assert.Equal(1, (int)container.Read(D));
-        Assert.Equal(2, (int)container.Read(G));
+        Assert.Equal(1, container.Read(D));
+        Assert.Equal(2, container.Read(G));
         Assert.Equal(1, builds[A]);
         Assert.Equal(1, builds[B]);
         Assert.Equal(1, builds[C]);
@@ -274,9 +276,9 @@ public class BasicTest
         Assert.Equal(1, builds[G]);
         Assert.Equal(1, builds[H]);
 
-        (((int, Action<int>))container.Read(A)).Item2(0);
-        Assert.Equal(1, (int)container.Read(D));
-        Assert.Equal(2, (int)container.Read(G));
+        container.Read(A).Item2(0);
+        Assert.Equal(1, container.Read(D));
+        Assert.Equal(2, container.Read(G));
         Assert.Equal(2, builds[A]);
         Assert.Equal(1, builds[B]);
         Assert.Equal(1, builds[C]);
@@ -286,7 +288,7 @@ public class BasicTest
         Assert.Equal(1, builds[G]);
         Assert.Equal(1, builds[H]);
 
-        (((int, Action<int>))container.Read(A)).Item2(1);
+        container.Read(A).Item2(1);
         Assert.Equal(3, builds[A]);
         Assert.Equal(2, builds[B]);
         Assert.Equal(1, builds[C]);
@@ -296,8 +298,8 @@ public class BasicTest
         Assert.Equal(1, builds[G]);
         Assert.Equal(1, builds[H]);
 
-        Assert.Equal(3, (int)container.Read(D));
-        Assert.Equal(5, (int)container.Read(G));
+        Assert.Equal(3, container.Read(D));
+        Assert.Equal(5, container.Read(G));
         Assert.Equal(3, builds[A]);
         Assert.Equal(2, builds[B]);
         Assert.Equal(2, builds[C]);
