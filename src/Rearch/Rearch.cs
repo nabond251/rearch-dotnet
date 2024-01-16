@@ -4,6 +4,8 @@
 
 namespace Rearch;
 
+public delegate void CapsuleListener(ICapsuleReader capsuleReader);
+
 public interface ICapsuleReader
 {
     T Call<T>(Func<ICapsuleHandle, T> capsule);
@@ -11,20 +13,24 @@ public interface ICapsuleReader
 
 public interface ISideEffectRegistrar
 {
-    T Register<T>(Func<ISideEffectApi, T> sideEffect);
+    T Register<T>(SideEffect<T> sideEffect);
 }
 
 public interface ICapsuleHandle : ICapsuleReader, ISideEffectRegistrar
 {
 }
 
+public delegate T SideEffect<T>(ISideEffectApi sideEffectApi);
+
+public delegate void SideEffectApiCallback();
+
 public interface ISideEffectApi
 {
     void Rebuild();
 
-    void RegisterDispose(Action callback);
+    void RegisterDispose(SideEffectApiCallback callback);
 
-    void UnregisterDispose(Action callback);
+    void UnregisterDispose(SideEffectApiCallback callback);
 }
 
 /// <summary>
@@ -48,7 +54,7 @@ public class Container : IDisposable
 
     public T Read<T>(Func<ICapsuleHandle, T> capsule) => this.Manager(capsule).Data;
 
-    public ListenerHandle Listen(Action<ICapsuleReader> listener)
+    public ListenerHandle Listen(CapsuleListener listener)
     {
         // Create a temporary *impure* capsule so that it doesn't get super-pure
         // garbage collected
@@ -135,7 +141,7 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode,
 
     public bool HasBuilt { get; protected set; } = false;
     public List<object?> SideEffectData { get; } = [];
-    public HashSet<Action> ToDispose { get; } = [];
+    public HashSet<SideEffectApiCallback> ToDispose { get; } = [];
 
     public R Read<R>(Func<ICapsuleHandle, R> otherCapsule)
     {
@@ -148,10 +154,10 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode,
 
     public void Rebuild() => this.BuildSelfAndDependents();
 
-    public void RegisterDispose(Action callback) =>
+    public void RegisterDispose(SideEffectApiCallback callback) =>
         this.ToDispose.Add(callback);
 
-    public void UnregisterDispose(Action callback) =>
+    public void UnregisterDispose(SideEffectApiCallback callback) =>
         this.ToDispose.Remove(callback);
 }
 
@@ -210,7 +216,7 @@ internal class CapsuleHandle : ICapsuleHandle
 
     public T Call<T>(Func<ICapsuleHandle, T> capsule) => this.Manager.Read(capsule);
 
-    public T Register<T>(Func<ISideEffectApi, T> sideEffect)
+    public T Register<T>(SideEffect<T> sideEffect)
     {
         if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
         {
