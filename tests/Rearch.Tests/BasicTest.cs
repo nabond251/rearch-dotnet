@@ -4,11 +4,6 @@
 
 namespace Rearch.Tests;
 
-record class Integer(int Value)
-{
-    public static implicit operator Integer(int value) => new(value);
-}
-
 /// <summary>
 /// Test basic rearch functionality.
 /// </summary>
@@ -20,8 +15,8 @@ public class BasicTest
     [Fact]
     public void BasicCountExample()
     {
-        Integer Count(ICapsuleHandle _) => 0;
-        Integer CountPlusOne(ICapsuleHandle use) => use.Call(Count).Value + 1;
+        int Count(ICapsuleHandle _) => 0;
+        int CountPlusOne(ICapsuleHandle use) => use.Call(Count) + 1;
 
         using var container = new Container();
         Assert.Equal(0, container.Read(Count));
@@ -31,8 +26,8 @@ public class BasicTest
     [Fact]
     public void StateUpdatesForStatefulCapsule()
     {
-        Tuple<Integer, Action<Integer>> Stateful(ICapsuleHandle use) => use.State(new Integer(0));
-        Integer PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1.Value + 1;
+        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
+        int PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1 + 1;
 
         using var container = new Container();
 
@@ -58,8 +53,8 @@ public class BasicTest
     [Fact]
     public void StateUpdatesForDependentCapsule()
     {
-        Tuple<Integer, Action<Integer>> Stateful(ICapsuleHandle use) => use.State(new Integer(0));
-        Integer PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1.Value + 1;
+        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
+        int PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1 + 1;
 
         using var container = new Container();
 
@@ -82,10 +77,10 @@ public class BasicTest
     [Fact]
     public void MultipleSideEffects()
     {
-        Tuple<Tuple<Integer, Action<Integer>>, Tuple<Integer, Action<Integer>>> Multi(
+        ((int, Action<int>), (int, Action<int>)) Multi(
             ICapsuleHandle use)
         {
-            return Tuple.Create(use.State(new Integer(0)), use.State(new Integer(1)));
+            return (use.State(0), use.State(1));
         }
 
         using var container = new Container();
@@ -108,12 +103,12 @@ public class BasicTest
     [Fact]
     public void ListenerGetsUpdates()
     {
-        Tuple<Integer, Action<Integer>> Stateful(ICapsuleHandle use) => use.State(new Integer(0));
+        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
 
         using var container = new Container();
-        void SetState(Integer state) => container.Read(Stateful).Item2(state);
+        void SetState(int state) => container.Read(Stateful).Item2(state);
 
-        List<Integer> states = [];
+        List<int> states = [];
         void Listener(ICapsuleReader use) => states.Add(use.Call(Stateful).Item1);
 
         SetState(1);
@@ -146,9 +141,9 @@ public class BasicTest
     [Fact]
     public void ComplexDependencyGraph()
     {
-        Dictionary<Func<ICapsuleHandle, object?>, Integer> builds = [];
+        Dictionary<object, int> builds = [];
 
-        Tuple<Integer, Action<Integer>> A(ICapsuleHandle use)
+        (int, Action<int>) A(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(A))
             {
@@ -156,13 +151,13 @@ public class BasicTest
             }
             else
             {
-                builds[A] = builds[A].Value + 1;
+                builds[A] = builds[A] + 1;
             }
 
-            return use.State(new Integer(0));
+            return use.State(0);
         }
 
-        Integer B(ICapsuleHandle use)
+        int B(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(B))
             {
@@ -170,14 +165,14 @@ public class BasicTest
             }
             else
             {
-                builds[B] = builds[B].Value + 1;
+                builds[B] = builds[B] + 1;
             }
 
             use.Register(_ => new object());
             return use.Call(A).Item1;
         }
 
-        Integer H(ICapsuleHandle use)
+        int H(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(H))
             {
@@ -185,13 +180,13 @@ public class BasicTest
             }
             else
             {
-                builds[H] = builds[H].Value + 1;
+                builds[H] = builds[H] + 1;
             }
 
             return 1;
         }
 
-        Integer E(ICapsuleHandle use)
+        int E(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(E))
             {
@@ -199,13 +194,13 @@ public class BasicTest
             }
             else
             {
-                builds[E] = builds[E].Value + 1;
+                builds[E] = builds[E] + 1;
             }
 
-            return use.Call(A).Item1.Value + use.Call(H).Value;
+            return use.Call(A).Item1 + use.Call(H);
         }
 
-        Integer F(ICapsuleHandle use)
+        int F(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(F))
             {
@@ -213,14 +208,14 @@ public class BasicTest
             }
             else
             {
-                builds[F] = builds[F].Value + 1;
+                builds[F] = builds[F] + 1;
             }
 
             use.Register(_ => new object());
             return use.Call(E);
         }
 
-        Integer C(ICapsuleHandle use)
+        int C(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(C))
             {
@@ -228,13 +223,13 @@ public class BasicTest
             }
             else
             {
-                builds[C] = builds[C].Value + 1;
+                builds[C] = builds[C] + 1;
             }
 
-            return use.Call(B).Value + use.Call(F).Value;
+            return use.Call(B) + use.Call(F);
         }
 
-        Integer D(ICapsuleHandle use)
+        int D(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(D))
             {
@@ -242,13 +237,13 @@ public class BasicTest
             }
             else
             {
-                builds[D] = builds[D].Value + 1;
+                builds[D] = builds[D] + 1;
             }
 
             return use.Call(C);
         }
 
-        Integer G(ICapsuleHandle use)
+        int G(ICapsuleHandle use)
         {
             if (!builds.ContainsKey(G))
             {
@@ -256,10 +251,10 @@ public class BasicTest
             }
             else
             {
-                builds[G] = builds[G].Value + 1;
+                builds[G] = builds[G] + 1;
             }
 
-            return use.Call(C).Value + use.Call(F).Value;
+            return use.Call(C) + use.Call(F);
         }
 
         using var container = new Container();
