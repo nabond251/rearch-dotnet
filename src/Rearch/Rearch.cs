@@ -176,7 +176,7 @@ internal class CapsuleManager<T> : UntypedCapsuleManager where T : class
 
         // Build the capsule's new data
         var newData = this.Capsule(new CapsuleHandle(this));
-        var didChange = !this.HasBuilt || newData != this.Data;
+        var didChange = !this.HasBuilt || !newData.Equals(this.Data);
         this.Data = newData;
         this.HasBuilt = true;
         return didChange;
