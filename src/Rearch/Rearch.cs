@@ -34,7 +34,7 @@ public class Container : IDisposable
 {
     internal readonly Dictionary<
         Func<ICapsuleHandle, object?>,
-        CapsuleManager<object?>> capsules = [];
+        UntypedCapsuleManager> capsules = [];
 
     internal CapsuleManager<T> Manager<T>(Func<ICapsuleHandle, T> capsule) where T : class
     {
@@ -123,22 +123,17 @@ public class ListenerHandle : IDisposable
     }
 }
 
-internal class CapsuleManager<T> : DataflowGraphNode,
-    ISideEffectApi where T : class
+internal abstract class UntypedCapsuleManager : DataflowGraphNode,
+    ISideEffectApi
 {
-    public CapsuleManager(Container container, Func<ICapsuleHandle, T> capsule)
+    protected UntypedCapsuleManager(Container container)
     {
         this.Container = container;
-        this.Capsule = capsule;
-
-        this.BuildSelf();
     }
 
     public Container Container { get; }
-    public Func<ICapsuleHandle, T> Capsule { get; }
 
-    public T Data { get; private set; }
-    public bool HasBuilt { get; private set; } = false;
+    public bool HasBuilt { get; protected set; } = false;
     public List<object?> SideEffectData { get; } = [];
     public HashSet<Action> ToDispose { get; } = [];
 
@@ -148,6 +143,31 @@ internal class CapsuleManager<T> : DataflowGraphNode,
         this.AddDependency(otherManager);
         return otherManager.Data;
     }
+
+    public override bool IsSuperPure => this.SideEffectData.Count == 0;
+
+    public void Rebuild() => this.BuildSelfAndDependents();
+
+    public void RegisterDispose(Action callback) =>
+        this.ToDispose.Add(callback);
+
+    public void UnregisterDispose(Action callback) =>
+        this.ToDispose.Remove(callback);
+}
+
+internal class CapsuleManager<T> : UntypedCapsuleManager where T : class
+{
+    public CapsuleManager(Container container, Func<ICapsuleHandle, T> capsule)
+        : base(container)
+    {
+        this.Capsule = capsule;
+
+        this.BuildSelf();
+    }
+
+    public Func<ICapsuleHandle, T> Capsule { get; }
+
+    public T Data { get; private set; }
 
     public override bool BuildSelf()
     {
@@ -162,8 +182,6 @@ internal class CapsuleManager<T> : DataflowGraphNode,
         return didChange;
     }
 
-    public override bool IsSuperPure => this.SideEffectData.Count == 0;
-
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -177,24 +195,16 @@ internal class CapsuleManager<T> : DataflowGraphNode,
             }
         }
     }
-
-    public void Rebuild() => this.BuildSelfAndDependents();
-
-    public void RegisterDispose(Action callback) =>
-        this.ToDispose.Add(callback);
-
-    public void UnregisterDispose(Action callback) =>
-        this.ToDispose.Remove(callback);
 }
 
 internal class CapsuleHandle : ICapsuleHandle
 {
-    public CapsuleHandle(CapsuleManager<object?> manager)
+    public CapsuleHandle(UntypedCapsuleManager manager)
     {
         this.Manager = manager;
     }
 
-    public CapsuleManager<object?> Manager { get; }
+    public UntypedCapsuleManager Manager { get; }
 
     public int SideEffectDataIndex { get; private set; } = 0;
 
