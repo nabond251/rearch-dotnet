@@ -26,7 +26,7 @@ public static class BuiltinSideEffectExtensions
     /// </summary>
     public static T Callonce<T>(
         this ISideEffectRegistrar registrar,
-        Func<T> callback) where T : notnull =>
+        Func<T> callback) =>
         registrar.Register((_) => callback());
 
     /// <summary>
@@ -74,7 +74,7 @@ public static class BuiltinSideEffectExtensions
     /// </summary>
     public static T LazyValue<T>(
         this ISideEffectRegistrar registrar,
-        Func<T> init) where T : notnull =>
+        Func<T> init) =>
         registrar.Callonce(init);
 
     /// <summary>
@@ -85,7 +85,7 @@ public static class BuiltinSideEffectExtensions
     /// </summary>
     public static T Value<T>(
         this ISideEffectRegistrar registrar,
-        T initial) where T : notnull =>
+        T initial) =>
         registrar.LazyValue(() => initial);
 
     // TODO: other side effects

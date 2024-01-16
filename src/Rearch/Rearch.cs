@@ -6,12 +6,12 @@ namespace Rearch;
 
 public interface ICapsuleReader
 {
-    T Call<T>(Func<ICapsuleHandle, T> capsule) where T : notnull;
+    T Call<T>(Func<ICapsuleHandle, T> capsule);
 }
 
 public interface ISideEffectRegistrar
 {
-    T Register<T>(Func<ISideEffectApi, T> sideEffect) where T : notnull;
+    T Register<T>(Func<ISideEffectApi, T> sideEffect);
 }
 
 public interface ICapsuleHandle : ICapsuleReader, ISideEffectRegistrar
@@ -36,7 +36,7 @@ public class Container : IDisposable
         object,
         UntypedCapsuleManager> capsules = [];
 
-    internal CapsuleManager<T> Manager<T>(Func<ICapsuleHandle, T> capsule) where T : notnull
+    internal CapsuleManager<T> Manager<T>(Func<ICapsuleHandle, T> capsule)
     {
         if (!this.capsules.ContainsKey(capsule))
         {
@@ -46,7 +46,7 @@ public class Container : IDisposable
         return this.capsules[capsule] as CapsuleManager<T>;
     }
 
-    public T Read<T>(Func<ICapsuleHandle, T> capsule) where T : notnull => this.Manager(capsule).Data;
+    public T Read<T>(Func<ICapsuleHandle, T> capsule) => this.Manager(capsule).Data;
 
     public ListenerHandle Listen(Action<ICapsuleReader> listener)
     {
@@ -137,7 +137,7 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode,
     public List<object?> SideEffectData { get; } = [];
     public HashSet<Action> ToDispose { get; } = [];
 
-    public R Read<R>(Func<ICapsuleHandle, R> otherCapsule) where R : notnull
+    public R Read<R>(Func<ICapsuleHandle, R> otherCapsule)
     {
         var otherManager = this.Container.Manager(otherCapsule);
         this.AddDependency(otherManager);
@@ -155,7 +155,7 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode,
         this.ToDispose.Remove(callback);
 }
 
-internal class CapsuleManager<T> : UntypedCapsuleManager where T : notnull
+internal class CapsuleManager<T> : UntypedCapsuleManager
 {
     public CapsuleManager(Container container, Func<ICapsuleHandle, T> capsule)
         : base(container)
@@ -208,9 +208,9 @@ internal class CapsuleHandle : ICapsuleHandle
 
     public int SideEffectDataIndex { get; private set; } = 0;
 
-    public T Call<T>(Func<ICapsuleHandle, T> capsule) where T : notnull => this.Manager.Read(capsule);
+    public T Call<T>(Func<ICapsuleHandle, T> capsule) => this.Manager.Read(capsule);
 
-    public T Register<T>(Func<ISideEffectApi, T> sideEffect) where T : notnull
+    public T Register<T>(Func<ISideEffectApi, T> sideEffect)
     {
         if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
         {
