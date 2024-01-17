@@ -4,39 +4,87 @@
 
 namespace Rearch;
 
+// TODO(nabond251): eager garbage collection mode
+
+/// <summary>
+/// A blueprint for creating some data, given a <see cref="ICapsuleHandle"/>.
+/// See the documentation for more.
+/// </summary>
 public delegate T Capsule<T>(ICapsuleHandle handle);
 
+/// <summary>
+/// Capsule listeners are a mechanism to <i>temporarily</i> listen to changes
+/// to a set of <see cref="Capsule{T}"/>s.
+/// </summary>
+/// <seealso cref="Container.Listen(CapsuleListener)"/>
 public delegate void CapsuleListener(ICapsuleReader capsuleReader);
 
+/// <summary>
+/// Provides a mechanism to read the current state of <see cref="Capsule{T}"/>s.
+/// </summary>
 public interface ICapsuleReader
 {
+    /// <summary>
+    /// Reads the data of the supplied <see cref="Capsule{T}"/>.
+    /// </summary>
     T Call<T>(Capsule<T> capsule);
 }
 
+/// <summary>
+/// Provides a mechanism (<see cref="Register{T}(SideEffect{T})"/>) to register side effects.
+/// </summary>
 public interface ISideEffectRegistrar
 {
+    /// <summary>
+    /// Registers the given side effect.
+    /// </summary>
     T Register<T>(SideEffect<T> sideEffect);
 }
 
+/// <summary>
+/// The handle given to a <see cref="Capsule{T}"/> to build its data.
+/// </summary>
 public interface ICapsuleHandle : ICapsuleReader, ISideEffectRegistrar
 {
 }
 
+/// <summary>
+/// Represents a side effect.
+/// See the documentation for more.
+/// </summary>
 public delegate T SideEffect<T>(ISideEffectApi sideEffectApi);
 
+/// <summary>
+/// An <c>Action</c> callback.
+/// </summary>
 public delegate void SideEffectApiCallback();
 
+/// <summary>
+/// The api given to <see cref="SideEffect{T}"/>s to create their state.
+/// </summary>
 public interface ISideEffectApi
 {
+    /// <summary>
+    /// Triggers a rebuild in the supplied capsule.
+    /// </summary>
     void Rebuild();
 
+    /// <summary>
+    /// Registers the given <see cref="SideEffectApiCallback"/>
+    /// to be called on capsule disposal.
+    /// </summary>
     void RegisterDispose(SideEffectApiCallback callback);
 
+    /// <summary>
+    /// Unregisters the given <see cref="SideEffectApiCallback"/>
+    /// from being called on capsule disposal.
+    /// </summary>
     void UnregisterDispose(SideEffectApiCallback callback);
 }
 
 /// <summary>
-/// Contains the data of capsules.
+/// Contains the data of <see cref="Capsule{T}"/>s.
+/// See the documentation for more.
 /// </summary>
 public class Container : IDisposable
 {
@@ -54,8 +102,19 @@ public class Container : IDisposable
         return this.capsules[capsule] as CapsuleManager<T>;
     }
 
+    /// <summary>
+    /// Reads the current data of the supplied <see cref="Capsule"/>.
+    /// </summary>
     public T Read<T>(Capsule<T> capsule) => this.Manager(capsule).Data;
 
+    /// <summary>
+    /// <i>Temporarily</i> listens to changes in a given set of <see cref="Capsule{T}"/>s.
+    /// If you want to listen to capsule(s) <i>not temporarily</i>,
+    /// instead just make an impure capsule and <see cref="Read{T}(Capsule{T})"/> it once to initialize it.
+    /// <c>Listen</c> calls the supplied listener immediately,
+    /// and then after any capsules its listening to change.
+    /// </summary>
+    /// <remarks><see cref="ListenerHandle"/> will leak its listener if it is not disposed.</remarks>
     public ListenerHandle Listen(CapsuleListener listener)
     {
         // Create a temporary *impure* capsule so that it doesn't get super-pure
@@ -99,6 +158,11 @@ public class Container : IDisposable
     }
 }
 
+/// <summary>
+/// A handle onto the lifecycle of a listener from <see cref="Container.Listen(CapsuleListener)"/>.
+/// You <i>must</i> <see cref="Dispose()"/> the <see cref="ListenerHandle"/>
+/// when you no longer need the listener in order to prevent leaks.
+/// </summary>
 public class ListenerHandle : IDisposable
 {
     private readonly Container container;
@@ -179,7 +243,7 @@ internal class CapsuleManager<T> : UntypedCapsuleManager
 
     public override bool BuildSelf()
     {
-        // Clear dependency relationships as they will be repopulated via `read`
+        // Clear dependency relationships as they will be repopulated via `Read`
         this.ClearDependencies();
 
         // Build the capsule's new data

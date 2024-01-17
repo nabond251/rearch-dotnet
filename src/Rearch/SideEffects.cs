@@ -4,6 +4,9 @@
 
 namespace Rearch;
 
+/// <summary>
+/// A collection of builtin side effects.
+/// </summary>
 public static class BuiltinSideEffectExtensions
 {
     /// <summary>
@@ -88,5 +91,5 @@ public static class BuiltinSideEffectExtensions
         T initial) =>
         registrar.LazyValue(() => initial);
 
-    // TODO: other side effects
+    // TODO(nabond251): other side effects
 }
