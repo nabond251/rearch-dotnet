@@ -7,19 +7,26 @@ namespace Example;
 using Rearch;
 using Xunit;
 
+/// <summary>
+/// Usage example implementation.
+/// </summary>
 public static class Example
 {
     /// <summary>
     /// Represents a manager of the count;
     /// i.e., has the count and a way to manage that count.
     /// </summary>
-    public static (int, Action<int>) CountManager(ICapsuleHandle use) => use.State(0);
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Count state and setter.</returns>
+    public static (int Count, Action<int> SetCount) CountManager(ICapsuleHandle use) => use.State(0);
 
     /// <summary>
     /// Provides a function that increments the count.
-    /// Note: normally this would just be done with the `countManager` capsule;
+    /// Note: normally this would just be done with the <c>countManager</c> capsule;
     /// it is separate in this example to demonstrate capsule composability.
     /// </summary>
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Count incrementer.</returns>
     public static Action CountIncrementer(ICapsuleHandle use)
     {
         var (count, setCount) = use.Call(CountManager);
@@ -28,15 +35,19 @@ public static class Example
 
     /// <summary>
     /// Provides the current count.
-    /// Note: normally this would just be done with the `countManager` capsule;
+    /// Note: normally this would just be done with the <c>countManager</c> capsule;
     /// it is separate in this example to demonstrate capsule composability.
     /// </summary>
-    public static int Count(ICapsuleHandle use) => use.Call(CountManager).Item1;
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Count.</returns>
+    public static int Count(ICapsuleHandle use) => use.Call(CountManager).Count;
 
     /// <summary>
     /// Provides the current count plus one.
     /// This helps showcase rearch's reactivity.
     /// </summary>
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Count plus one.</returns>
     public static int CountPlusOne(ICapsuleHandle use) => use.Call(Count) + 1;
 
     /// <summary>

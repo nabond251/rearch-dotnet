@@ -1,44 +1,67 @@
-﻿// <copyright file="Node.cs" company="SdgApps">
+// <copyright file="DataflowGraphNode.cs" company="SdgApps">
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
 namespace Rearch;
 
+/// <summary>
+/// Node used to manage dataflow computation.
+/// </summary>
 internal abstract class DataflowGraphNode : IDisposable
 {
     private readonly HashSet<DataflowGraphNode> dependencies = [];
     private readonly HashSet<DataflowGraphNode> dependents = [];
 
+    /// <summary>
+    /// Gets a value indicating whether the node is free of side effects.
+    /// </summary>
     public abstract bool IsSuperPure { get; }
-    public abstract bool BuildSelf();
 
-    /// <inheritdoc/>
-    public void Dispose()
+    /// <summary>
+    /// Prune unused nodes from the network.  Nodes are unused if nothing depends on them and they have no side effects.
+    /// </summary>
+    /// <param name="buildOrder">List of nodes to consider for pruning.</param>
+    /// <returns>List of nodes after pruning.</returns>
+    public static IEnumerable<DataflowGraphNode> GarbageCollectDisposableNodes(
+        IList<DataflowGraphNode> buildOrder)
     {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
+        var nonDisposable = new List<DataflowGraphNode>();
+
+        foreach (var node in buildOrder.Reverse())
+        {
+            var isDisposable = node.IsSuperPure && !node.dependents.Any();
+            if (isDisposable)
+            {
+                node.Dispose();
+            }
+            else
+            {
+                nonDisposable.Add(node);
+            }
+        }
+
+        return nonDisposable.AsEnumerable().Reverse();
     }
 
     /// <summary>
-    /// Implements the disposable pattern.
+    /// Updates node data.
     /// </summary>
-    /// <param name="disposing">
-    /// A value indicating whether this is being disposed.
-    /// </param>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            this.ClearDependencies();
-        }
-    }
+    /// <returns>A value indicating whether the node data changed.</returns>
+    public abstract bool BuildSelf();
 
+    /// <summary>
+    /// Adds a dependency node in the node network.
+    /// </summary>
+    /// <param name="node">Dependency node to add.</param>
     public void AddDependency(DataflowGraphNode node)
     {
         this.dependencies.Add(node);
         node.dependents.Add(this);
     }
 
+    /// <summary>
+    /// Clears node network dependencies.
+    /// </summary>
     public void ClearDependencies()
     {
         foreach (var dep in this.dependencies)
@@ -46,9 +69,12 @@ internal abstract class DataflowGraphNode : IDisposable
             dep.dependents.Remove(this);
         }
 
-        dependencies.Clear();
+        this.dependencies.Clear();
     }
 
+    /// <summary>
+    /// Updates node data and propogates any changes to other associated nodes in the network.
+    /// </summary>
     public void BuildSelfAndDependents()
     {
         var selfChanged = this.BuildSelf();
@@ -59,7 +85,7 @@ internal abstract class DataflowGraphNode : IDisposable
 
         // Build or garbage collect (dispose) all remaining nodes
         // (We use skip(1) to avoid building this node twice)
-        var buildOrder = CreateBuildOrder().Skip(1).ToList();
+        var buildOrder = this.CreateBuildOrder().Skip(1).ToList();
         var disposableNodes = GetDisposableNodesFromBuildOrder(buildOrder);
         HashSet<DataflowGraphNode> changedNodes = [this];
         foreach (var node in buildOrder)
@@ -87,6 +113,47 @@ internal abstract class DataflowGraphNode : IDisposable
                 }
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Implements the disposable pattern.
+    /// </summary>
+    /// <param name="disposing">
+    /// A value indicating whether this is being disposed.
+    /// </param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this.ClearDependencies();
+        }
+    }
+
+    private static ISet<DataflowGraphNode> GetDisposableNodesFromBuildOrder(
+        IList<DataflowGraphNode> buildOrder)
+    {
+        HashSet<DataflowGraphNode> disposable = [];
+
+        var ds = buildOrder.Reverse().Where(node =>
+        {
+            var dependentsAllDisposable =
+                node.dependents.All(disposable.Contains);
+            return node.IsSuperPure && dependentsAllDisposable;
+        });
+
+        foreach (var d in ds)
+        {
+            disposable.Add(d);
+        }
+
+        return disposable;
     }
 
     private IList<DataflowGraphNode> CreateBuildOrder()
@@ -126,26 +193,5 @@ internal abstract class DataflowGraphNode : IDisposable
         }
 
         return buildOrderStack.AsEnumerable().Reverse().ToList();
-    }
-
-    private static ISet<DataflowGraphNode> GetDisposableNodesFromBuildOrder(
-        IList<DataflowGraphNode> buildOrder)
-    {
-        HashSet<DataflowGraphNode> disposable = [];
-
-        var ds = buildOrder.Reverse().Where(node =>
-        {
-            var mgr = node as CapsuleManager<int>;
-            var dependentsAllDisposable =
-                node.dependents.All(disposable.Contains);
-            return node.IsSuperPure && dependentsAllDisposable;
-        });
-        
-        foreach (var d in ds)
-        {
-            disposable.Add(d);
-        }
-
-        return disposable;
     }
 }
