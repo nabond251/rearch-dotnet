@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{075AFD96
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rearch.Tests", "tests\Rearch.Tests\Rearch.Tests.csproj", "{0583184D-B026-4170-88D4-AD8876930160}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MauiReactorRearch", "src\MauiReactorRearch\MauiReactorRearch.csproj", "{B150E8CB-1350-4F5A-9521-2EDF3C7BB42D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rearch.Reactor", "src\Rearch.Reactor\Rearch.Reactor.csproj", "{B150E8CB-1350-4F5A-9521-2EDF3C7BB42D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{D4C4AC65-6F17-461F-A631-841AF26FC2BB}"
 EndProject
