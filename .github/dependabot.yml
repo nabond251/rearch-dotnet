@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: weekly
   - package-ecosystem: nuget
-    directory: "/sample/Example"
+    directory: "/sample/Rearch.Example"
     schedule:
       interval: weekly
   - package-ecosystem: nuget
@@ -18,6 +18,6 @@ updates:
     schedule:
       interval: weekly
   - package-ecosystem: nuget
-    directory: "/sample/Reactor.Example"
+    directory: "/sample/Rearch.Reactor.Example"
     schedule:
       interval: weekly

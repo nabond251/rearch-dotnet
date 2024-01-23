@@ -15,9 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rearch.Reactor", "src\Rearc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{D4C4AC65-6F17-461F-A631-841AF26FC2BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "sample\Example\Example.csproj", "{73F28DC9-D965-4C10-8C9F-E29104B52737}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rearch.Example", "sample\Rearch.Example\Rearch.Example.csproj", "{73F28DC9-D965-4C10-8C9F-E29104B52737}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Tests", "tests\Example.Tests\Example.Tests.csproj", "{C9813C9F-2670-480A-A7EF-E8814D631806}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rearch.Example.Tests", "tests\Rearch.Example.Tests\Rearch.Example.Tests.csproj", "{C9813C9F-2670-480A-A7EF-E8814D631806}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
