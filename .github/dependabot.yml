@@ -1,0 +1,23 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+  - package-ecosystem: nuget
+    directory: "/src/Rearch"
+    schedule:
+      interval: weekly
+  - package-ecosystem: nuget
+    directory: "/sample/Rearch.Example"
+    schedule:
+      interval: weekly
+  - package-ecosystem: nuget
+    directory: "/src/Rearch.Reactor"
+    schedule:
+      interval: weekly
+  - package-ecosystem: nuget
+    directory: "/sample/Rearch.Reactor.Example"
+    schedule:
+      interval: weekly
