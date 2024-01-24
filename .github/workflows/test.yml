@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - master
+      - dev
   schedule:
     # runs the CI everyday at 10AM
     - cron: "0 10 * * *"

@@ -6,7 +6,7 @@ on:
       - "*"
 
 env:
-  NuGetDirectory: ${{ github.workspace}}/nuget
+  NuGetDirectory: ${{github.workspace}}/nuget
   NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
 
 jobs:
