@@ -1,0 +1,29 @@
+name: Publish Release(s)
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x' # SDK Version to use.
+          source-url: https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
+          NuGetDirectory: ${{ github.workspace}}/nuget
+      - name: Set VERSION variable from tag
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+      - run: dotnet build --configuration Release /p:Version=${VERSION}
+      - name: Create the package
+        run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output ${NuGetDirectory}
+      - name: Publish the package to NuGet
+        run: dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key ${NUGET_AUTH_TOKEN}
