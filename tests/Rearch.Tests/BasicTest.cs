@@ -165,7 +165,7 @@ public class BasicTest
                 builds[UnchangingSuperPureDep] = builds[UnchangingSuperPureDep] + 1;
             }
 
-            use.Call(Stateful, nameof(Stateful));
+            use.Call(Stateful);
             return 0;
         }
 
@@ -180,7 +180,7 @@ public class BasicTest
                 builds[UnchangingWatcher] = builds[UnchangingWatcher] + 1;
             }
 
-            return use.Call(UnchangingSuperPureDep, nameof(UnchangingSuperPureDep));
+            return use.Call(UnchangingSuperPureDep);
         }
 
         int ChangingSuperPureDep(ICapsuleHandle use)
@@ -194,7 +194,7 @@ public class BasicTest
                 builds[ChangingSuperPureDep] = builds[ChangingSuperPureDep] + 1;
             }
 
-            return use.Call(Stateful, nameof(Stateful)).Item1;
+            return use.Call(Stateful).Item1;
         }
 
         int ChangingWatcher(ICapsuleHandle use)
@@ -208,29 +208,29 @@ public class BasicTest
                 builds[ChangingWatcher] = builds[ChangingWatcher] + 1;
             }
 
-            return use.Call(ChangingSuperPureDep, nameof(ChangingSuperPureDep));
+            return use.Call(ChangingSuperPureDep);
         }
 
         object ImpureSink(ICapsuleHandle use)
         {
             use.Register(_ => new object());
-            use.Call(ChangingWatcher, nameof(ChangingWatcher));
-            use.Call(UnchangingWatcher, nameof(UnchangingWatcher));
+            use.Call(ChangingWatcher);
+            use.Call(UnchangingWatcher);
 
             return new object();
         }
 
         using var container = new Container();
 
-        Assert.Equal(0, container.Read(UnchangingWatcher, nameof(UnchangingWatcher)));
-        Assert.Equal(0, container.Read(ChangingWatcher, nameof(ChangingWatcher)));
+        Assert.Equal(0, container.Read(UnchangingWatcher));
+        Assert.Equal(0, container.Read(ChangingWatcher));
         Assert.Equal(1, builds[Stateful]);
         Assert.Equal(1, builds[UnchangingSuperPureDep]);
         Assert.Equal(1, builds[ChangingSuperPureDep]);
         Assert.Equal(1, builds[UnchangingWatcher]);
         Assert.Equal(1, builds[ChangingWatcher]);
 
-        container.Read(Stateful, nameof(Stateful)).Item2(0);
+        container.Read(Stateful).Item2(0);
         Assert.Equal(2, builds[Stateful]);
         Assert.Equal(1, builds[UnchangingSuperPureDep]);
         Assert.Equal(1, builds[ChangingSuperPureDep]);
@@ -245,20 +245,7 @@ public class BasicTest
         Assert.Equal(1, builds[UnchangingWatcher]);
         Assert.Equal(1, builds[ChangingWatcher]);
 
-        File.Delete(@"c:\Users\Son of Eorl\Documents\test.txt");
-        File.AppendAllLines(
-            @"c:\Users\Son of Eorl\Documents\test.txt",
-            new List<string>
-            {
-                $"---------------BEGIN",
-            });
         container.Read(Stateful).Item2(1);
-        File.AppendAllLines(
-            @"c:\Users\Son of Eorl\Documents\test.txt",
-            new List<string>
-            {
-                $"---------------END",
-            });
         Assert.Equal(3, builds[Stateful]);
         Assert.Equal(1, builds[UnchangingSuperPureDep]);
         Assert.Equal(1, builds[ChangingSuperPureDep]);

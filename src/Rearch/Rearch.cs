@@ -27,7 +27,7 @@ public interface ICapsuleReader
     /// <summary>
     /// Reads the data of the supplied <see cref="Capsule{T}"/>.
     /// </summary>
-    T Call<T>(Capsule<T> capsule, string name = "");
+    T Call<T>(Capsule<T> capsule);
 }
 
 /// <summary>
@@ -92,11 +92,11 @@ public class Container : IDisposable
         object,
         UntypedCapsuleManager> capsules = [];
 
-    internal CapsuleManager<T> Manager<T>(Capsule<T> capsule, string name)
+    internal CapsuleManager<T> Manager<T>(Capsule<T> capsule)
     {
         if (!this.capsules.ContainsKey(capsule))
         {
-            this.capsules[capsule] = new CapsuleManager<T>(this, capsule, name);
+            this.capsules[capsule] = new CapsuleManager<T>(this, capsule);
         }
 
         return this.capsules[capsule] as CapsuleManager<T>;
@@ -105,7 +105,7 @@ public class Container : IDisposable
     /// <summary>
     /// Reads the current data of the supplied <see cref="Capsule"/>.
     /// </summary>
-    public T Read<T>(Capsule<T> capsule, string name = "") => this.Manager(capsule, name).Data;
+    public T Read<T>(Capsule<T> capsule) => this.Manager(capsule).Data;
 
     /// <summary>
     /// <i>Temporarily</i> listens to changes in a given set of <see cref="Capsule{T}"/>s.
@@ -115,7 +115,7 @@ public class Container : IDisposable
     /// and then after any capsules its listening to change.
     /// </summary>
     /// <remarks><see cref="ListenerHandle"/> will leak its listener if it is not disposed.</remarks>
-    public ListenerHandle Listen(CapsuleListener listener, string name = "")
+    public ListenerHandle Listen(CapsuleListener listener)
     {
         // Create a temporary *impure* capsule so that it doesn't get super-pure
         // garbage collected
@@ -127,7 +127,7 @@ public class Container : IDisposable
         }
 
         // Put the temporary capsule into the container so it gets data updates
-        this.Read(Capsule, name);
+        this.Read(Capsule);
 
         return new ListenerHandle(this, Capsule);
     }
@@ -190,7 +190,7 @@ public class ListenerHandle : IDisposable
     {
         if (disposing)
         {
-            this.container.Manager(this.capsule, "").Dispose();
+            this.container.Manager(this.capsule).Dispose();
         }
     }
 }
@@ -209,9 +209,9 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode,
     public List<object?> SideEffectData { get; } = [];
     public HashSet<SideEffectApiCallback> ToDispose { get; } = [];
 
-    public R Read<R>(Capsule<R> otherCapsule, string name = "")
+    public R Read<R>(Capsule<R> otherCapsule)
     {
-        var otherManager = this.Container.Manager(otherCapsule, name);
+        var otherManager = this.Container.Manager(otherCapsule);
         this.AddDependency(otherManager);
         return otherManager.Data;
     }
@@ -229,18 +229,15 @@ internal abstract class UntypedCapsuleManager : DataflowGraphNode,
 
 internal class CapsuleManager<T> : UntypedCapsuleManager
 {
-    public CapsuleManager(Container container, Capsule<T> capsule, string name)
+    public CapsuleManager(Container container, Capsule<T> capsule)
         : base(container)
     {
         this.Capsule = capsule;
-        this.Name = name;
 
         this.BuildSelf();
     }
 
     public Capsule<T> Capsule { get; }
-
-    public string Name { get; }
 
     public T Data { get; private set; }
 
@@ -252,15 +249,6 @@ internal class CapsuleManager<T> : UntypedCapsuleManager
         // Build the capsule's new data
         var newData = this.Capsule(new CapsuleHandle(this));
         var didChange = !this.HasBuilt || !newData.Equals(this.Data);
-        File.AppendAllLines(
-            @"c:\Users\Son of Eorl\Documents\test.txt",
-            new List<string>
-            {
-                $"this.HasBuilt: {this.HasBuilt}",
-                $"this.Data: {this.Data}",
-                $"newData: {newData}",
-                $"didChange: {didChange}",
-            });
         this.Data = newData;
         this.HasBuilt = true;
         return didChange;
@@ -292,7 +280,7 @@ internal class CapsuleHandle : ICapsuleHandle
 
     public int SideEffectDataIndex { get; private set; } = 0;
 
-    public T Call<T>(Capsule<T> capsule, string name = "") => this.Manager.Read(capsule, name);
+    public T Call<T>(Capsule<T> capsule) => this.Manager.Read(capsule);
 
     public T Register<T>(SideEffect<T> sideEffect)
     {
