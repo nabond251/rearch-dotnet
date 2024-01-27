@@ -57,31 +57,39 @@ internal abstract class DataflowGraphNode : IDisposable
             return;
         }
 
-        /*
-        // TODO only build dependents when buildSelf returns true,
-        //  and only gc nodes when depenency changes
-
-        var disposable = new List<DataflowGraphNode>();
-
-        buildOrder.Reverse().Where(node =>
-        {
-            var dependentsAllDisposable =
-                node.dependents.All(disposable.Contains);
-            return node.IsSuperPure && dependentsAllDisposable;
-        }).ToList().ForEach(disposable.Add);
-
-        return disposable;
-        */
-
-        var buildOrder = GarbageCollectDisposableNodes(
-            this.CreateBuildOrder().Skip(1).ToList());
+        // Build or garbage collect (dispose) all remaining nodes
+        // (We use skip(1) to avoid building this node twice)
+        var buildOrder = CreateBuildOrder().Skip(1).ToList();
+        var disposableNodes = GetDisposableNodesFromBuildOrder(buildOrder);
+        HashSet<DataflowGraphNode> changedNodes = [this];
         foreach (var node in buildOrder)
         {
-            node.BuildSelf();
+            var haveDepsChanged = node.dependencies.Any(changedNodes.Contains);
+            if (!haveDepsChanged)
+            {
+                continue;
+            }
+
+            if (disposableNodes.Contains(node))
+            {
+                // Note: dependency/dependent relationships will be after this,
+                // since we are disposing all dependents in the build order,
+                // because we are adding this node to changedNodes
+                node.Dispose();
+                changedNodes.Add(node);
+            }
+            else
+            {
+                var didNodeChange = node.BuildSelf();
+                if (didNodeChange)
+                {
+                    changedNodes.Add(node);
+                }
+            }
         }
     }
 
-    public IList<DataflowGraphNode> CreateBuildOrder()
+    private IList<DataflowGraphNode> CreateBuildOrder()
     {
         // We need some more information alongside of each node
         // in order to do the topological sort:
@@ -120,24 +128,18 @@ internal abstract class DataflowGraphNode : IDisposable
         return buildOrderStack.AsEnumerable().Reverse().ToList();
     }
 
-    public static IEnumerable<DataflowGraphNode> GarbageCollectDisposableNodes(
+    private static ISet<DataflowGraphNode> GetDisposableNodesFromBuildOrder(
         IList<DataflowGraphNode> buildOrder)
     {
-        var nonDisposable = new List<DataflowGraphNode>();
+        HashSet<DataflowGraphNode> disposable = [];
 
-        foreach (var node in buildOrder.Reverse())
+        buildOrder.Reverse().Where(node =>
         {
-            var isDisposable = node.IsSuperPure && !node.dependents.Any();
-            if (isDisposable)
-            {
-                node.Dispose();
-            }
-            else
-            {
-                nonDisposable.Add(node);
-            }
-        }
+            var dependentsAllDisposable =
+                node.dependents.All(disposable.Contains);
+            return node.IsSuperPure && dependentsAllDisposable;
+        }).ToList().ForEach(d => disposable.Add(d));
 
-        return nonDisposable.AsEnumerable().Reverse();
+        return disposable;
     }
 }
