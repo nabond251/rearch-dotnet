@@ -60,7 +60,17 @@ internal abstract class DataflowGraphNode : IDisposable
         // Build or garbage collect (dispose) all remaining nodes
         // (We use skip(1) to avoid building this node twice)
         var buildOrder = CreateBuildOrder().Skip(1).ToList();
+        File.AppendAllLines(
+            @"c:\Users\Son of Eorl\Documents\test.txt",
+            buildOrder
+            .Select(n => (n as CapsuleManager<int>))
+            .Select(m => $"{m?.Name}: {m?.Data}, {m?.IsSuperPure}"));
         var disposableNodes = GetDisposableNodesFromBuildOrder(buildOrder);
+        File.AppendAllLines(
+            @"c:\Users\Son of Eorl\Documents\test.txt",
+            disposableNodes
+            .Select(n => (n as CapsuleManager<int>))
+            .Select(m => $"{m?.Name}: {m?.Data}, {m?.IsSuperPure}"));
         HashSet<DataflowGraphNode> changedNodes = [this];
         foreach (var node in buildOrder)
         {
@@ -133,12 +143,24 @@ internal abstract class DataflowGraphNode : IDisposable
     {
         HashSet<DataflowGraphNode> disposable = [];
 
-        buildOrder.Reverse().Where(node =>
+        var ds = buildOrder.Reverse().Where(node =>
         {
+            var mgr = node as CapsuleManager<int>;
             var dependentsAllDisposable =
                 node.dependents.All(disposable.Contains);
+            File.AppendAllLines(
+                @"c:\Users\Son of Eorl\Documents\test.txt",
+                node.dependents
+                .Select(n => (n as CapsuleManager<int>))
+                .Select(m => $"{m?.Name}: {m?.Data}, {m?.IsSuperPure}")
+                .Prepend($"{mgr?.Name} dependents (all disposable {dependentsAllDisposable})"));
             return node.IsSuperPure && dependentsAllDisposable;
-        }).ToList().ForEach(d => disposable.Add(d));
+        });
+        
+        foreach (var d in ds)
+        {
+            disposable.Add(d);
+        }
 
         return disposable;
     }
