@@ -130,6 +130,155 @@ public class BasicTest
         Assert.Equal([1, 2, 3, 5, 6, 7], states);
     }
 
+    // Stateful
+    // + UnchangingSuperPureDep
+    // | + UnchangingWatcher --v
+    // + ChangingSuperPureDep  ImpureSink
+    //   + ChangingWatcher ----^
+    [Fact]
+    public void EqualsCheckSkipsUnneededRebuilds()
+    {
+        Dictionary<object, int> builds = [];
+
+        (int, Action<int>) Stateful(ICapsuleHandle use)
+        {
+            if (!builds.ContainsKey(Stateful))
+            {
+                builds[Stateful] = 1;
+            }
+            else
+            {
+                builds[Stateful] = builds[Stateful] + 1;
+            }
+
+            return use.State(0);
+        }
+
+        int UnchangingSuperPureDep(ICapsuleHandle use)
+        {
+            if (!builds.ContainsKey(UnchangingSuperPureDep))
+            {
+                builds[UnchangingSuperPureDep] = 1;
+            }
+            else
+            {
+                builds[UnchangingSuperPureDep] = builds[UnchangingSuperPureDep] + 1;
+            }
+
+            use.Call(Stateful);
+            return 0;
+        }
+
+        int UnchangingWatcher(ICapsuleHandle use)
+        {
+            if (!builds.ContainsKey(UnchangingWatcher))
+            {
+                builds[UnchangingWatcher] = 1;
+            }
+            else
+            {
+                builds[UnchangingWatcher] = builds[UnchangingWatcher] + 1;
+            }
+
+            return use.Call(UnchangingSuperPureDep);
+        }
+
+        int ChangingSuperPureDep(ICapsuleHandle use)
+        {
+            if (!builds.ContainsKey(ChangingSuperPureDep))
+            {
+                builds[ChangingSuperPureDep] = 1;
+            }
+            else
+            {
+                builds[ChangingSuperPureDep] = builds[ChangingSuperPureDep] + 1;
+            }
+
+            return use.Call(Stateful).Item1;
+        }
+
+        int ChangingWatcher(ICapsuleHandle use)
+        {
+            if (!builds.ContainsKey(ChangingWatcher))
+            {
+                builds[ChangingWatcher] = 1;
+            }
+            else
+            {
+                builds[ChangingWatcher] = builds[ChangingWatcher] + 1;
+            }
+
+            return use.Call(ChangingSuperPureDep);
+        }
+
+        object ImpureSink(ICapsuleHandle use)
+        {
+            use.Register(_ => new object());
+            use.Call(ChangingWatcher);
+            use.Call(UnchangingWatcher);
+
+            return new object();
+        }
+
+        using var container = new Container();
+
+        Assert.Equal(0, container.Read(UnchangingWatcher));
+        Assert.Equal(0, container.Read(ChangingWatcher));
+        Assert.Equal(1, builds[Stateful]);
+        Assert.Equal(1, builds[UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[ChangingSuperPureDep]);
+        Assert.Equal(1, builds[UnchangingWatcher]);
+        Assert.Equal(1, builds[ChangingWatcher]);
+
+        container.Read(Stateful).Item2(0);
+        Assert.Equal(2, builds[Stateful]);
+        Assert.Equal(1, builds[UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[ChangingSuperPureDep]);
+        Assert.Equal(1, builds[UnchangingWatcher]);
+        Assert.Equal(1, builds[ChangingWatcher]);
+
+        Assert.Equal(0, container.Read(UnchangingWatcher));
+        Assert.Equal(0, container.Read(ChangingWatcher));
+        Assert.Equal(2, builds[Stateful]);
+        Assert.Equal(1, builds[UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[ChangingSuperPureDep]);
+        Assert.Equal(1, builds[UnchangingWatcher]);
+        Assert.Equal(1, builds[ChangingWatcher]);
+
+        container.Read(Stateful).Item2(1);
+        Assert.Equal(3, builds[Stateful]);
+        Assert.Equal(1, builds[UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[ChangingSuperPureDep]);
+        Assert.Equal(1, builds[UnchangingWatcher]);
+        Assert.Equal(1, builds[ChangingWatcher]);
+
+        Assert.Equal(0, container.Read(UnchangingWatcher));
+        Assert.Equal(1, container.Read(ChangingWatcher));
+        Assert.Equal(3, builds[Stateful]);
+        Assert.Equal(2, builds[UnchangingSuperPureDep]);
+        Assert.Equal(2, builds[ChangingSuperPureDep]);
+        Assert.Equal(2, builds[UnchangingWatcher]);
+        Assert.Equal(2, builds[ChangingWatcher]);
+
+        // Disable the super pure gc
+        container.Read(ImpureSink);
+
+        container.Read(Stateful).Item2(2);
+        Assert.Equal(4, builds[Stateful]);
+        Assert.Equal(3, builds[UnchangingSuperPureDep]);
+        Assert.Equal(3, builds[ChangingSuperPureDep]);
+        Assert.Equal(2, builds[UnchangingWatcher]);
+        Assert.Equal(3, builds[ChangingWatcher]);
+
+        Assert.Equal(0, container.Read(UnchangingWatcher));
+        Assert.Equal(2, container.Read(ChangingWatcher));
+        Assert.Equal(4, builds[Stateful]);
+        Assert.Equal(3, builds[UnchangingSuperPureDep]);
+        Assert.Equal(3, builds[ChangingSuperPureDep]);
+        Assert.Equal(2, builds[UnchangingWatcher]);
+        Assert.Equal(3, builds[ChangingWatcher]);
+    }
+
     // We use a more sophisticated graph here for a more thorough
     // test of all functionality
     //
