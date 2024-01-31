@@ -15,7 +15,7 @@ public class BasicTest
     [Fact]
     public void BasicCountExample()
     {
-        int Count(ICapsuleHandle _) => 0;
+        int Count(ICapsuleHandle x) => 0;
         int CountPlusOne(ICapsuleHandle use) => use.Call(Count) + 1;
 
         using var container = new Container();
@@ -23,11 +23,13 @@ public class BasicTest
         Assert.Equal(1, container.Read(CountPlusOne));
     }
 
+    /// <summary>
+    /// Test state updates for stateful capsule.
+    /// </summary>
     [Fact]
     public void StateUpdatesForStatefulCapsule()
     {
-        (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
-        int PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1 + 1;
+        static (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
 
         using var container = new Container();
 
@@ -50,6 +52,9 @@ public class BasicTest
         }
     }
 
+    /// <summary>
+    /// Tests state updates for dependent capsule.
+    /// </summary>
     [Fact]
     public void StateUpdatesForDependentCapsule()
     {
@@ -74,10 +79,13 @@ public class BasicTest
         }
     }
 
+    /// <summary>
+    /// Tests multiple side effects.
+    /// </summary>
     [Fact]
     public void MultipleSideEffects()
     {
-        ((int, Action<int>), (int, Action<int>)) Multi(
+        static ((int, Action<int>), (int, Action<int>)) Multi(
             ICapsuleHandle use)
         {
             return (use.State(0), use.State(1));
@@ -94,12 +102,15 @@ public class BasicTest
         }
 
         {
-            var ((s1, set1), (s2, set2)) = container.Read(Multi);
+            var ((s1, _), (s2, _)) = container.Read(Multi);
             Assert.Equal(1, s1);
             Assert.Equal(2, s2);
         }
     }
 
+    /// <summary>
+    /// Test listener gets updates.
+    /// </summary>
     [Fact]
     public void ListenerGetsUpdates()
     {
@@ -130,11 +141,9 @@ public class BasicTest
         Assert.Equal([1, 2, 3, 5, 6, 7], states);
     }
 
-    // Stateful
-    // + UnchangingSuperPureDep
-    // | + UnchangingWatcher --v
-    // + ChangingSuperPureDep  ImpureSink
-    //   + ChangingWatcher ----^
+    /// <summary>
+    /// Test == check skips unneeded rebuilds.
+    /// </summary>
     [Fact]
     public void EqualsCheckSkipsUnneededRebuilds()
     {
@@ -142,13 +151,13 @@ public class BasicTest
 
         (int, Action<int>) Stateful(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(Stateful))
+            if (!builds.ContainsKey((object)Stateful))
             {
-                builds[Stateful] = 1;
+                builds[(object)Stateful] = 1;
             }
             else
             {
-                builds[Stateful] = builds[Stateful] + 1;
+                builds[(object)Stateful] = builds[(object)Stateful] + 1;
             }
 
             return use.State(0);
@@ -156,13 +165,13 @@ public class BasicTest
 
         int UnchangingSuperPureDep(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(UnchangingSuperPureDep))
+            if (!builds.ContainsKey((object)UnchangingSuperPureDep))
             {
-                builds[UnchangingSuperPureDep] = 1;
+                builds[(object)UnchangingSuperPureDep] = 1;
             }
             else
             {
-                builds[UnchangingSuperPureDep] = builds[UnchangingSuperPureDep] + 1;
+                builds[(object)UnchangingSuperPureDep] = builds[(object)UnchangingSuperPureDep] + 1;
             }
 
             use.Call(Stateful);
@@ -171,13 +180,13 @@ public class BasicTest
 
         int UnchangingWatcher(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(UnchangingWatcher))
+            if (!builds.ContainsKey((object)UnchangingWatcher))
             {
-                builds[UnchangingWatcher] = 1;
+                builds[(object)UnchangingWatcher] = 1;
             }
             else
             {
-                builds[UnchangingWatcher] = builds[UnchangingWatcher] + 1;
+                builds[(object)UnchangingWatcher] = builds[(object)UnchangingWatcher] + 1;
             }
 
             return use.Call(UnchangingSuperPureDep);
@@ -185,13 +194,13 @@ public class BasicTest
 
         int ChangingSuperPureDep(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(ChangingSuperPureDep))
+            if (!builds.ContainsKey((object)ChangingSuperPureDep))
             {
-                builds[ChangingSuperPureDep] = 1;
+                builds[(object)ChangingSuperPureDep] = 1;
             }
             else
             {
-                builds[ChangingSuperPureDep] = builds[ChangingSuperPureDep] + 1;
+                builds[(object)ChangingSuperPureDep] = builds[(object)ChangingSuperPureDep] + 1;
             }
 
             return use.Call(Stateful).Item1;
@@ -199,13 +208,13 @@ public class BasicTest
 
         int ChangingWatcher(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(ChangingWatcher))
+            if (!builds.ContainsKey((object)ChangingWatcher))
             {
-                builds[ChangingWatcher] = 1;
+                builds[(object)ChangingWatcher] = 1;
             }
             else
             {
-                builds[ChangingWatcher] = builds[ChangingWatcher] + 1;
+                builds[(object)ChangingWatcher] = builds[(object)ChangingWatcher] + 1;
             }
 
             return use.Call(ChangingSuperPureDep);
@@ -224,61 +233,64 @@ public class BasicTest
 
         Assert.Equal(0, container.Read(UnchangingWatcher));
         Assert.Equal(0, container.Read(ChangingWatcher));
-        Assert.Equal(1, builds[Stateful]);
-        Assert.Equal(1, builds[UnchangingSuperPureDep]);
-        Assert.Equal(1, builds[ChangingSuperPureDep]);
-        Assert.Equal(1, builds[UnchangingWatcher]);
-        Assert.Equal(1, builds[ChangingWatcher]);
+        Assert.Equal(1, builds[(object)Stateful]);
+        Assert.Equal(1, builds[(object)UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)ChangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)UnchangingWatcher]);
+        Assert.Equal(1, builds[(object)ChangingWatcher]);
 
         container.Read(Stateful).Item2(0);
-        Assert.Equal(2, builds[Stateful]);
-        Assert.Equal(1, builds[UnchangingSuperPureDep]);
-        Assert.Equal(1, builds[ChangingSuperPureDep]);
-        Assert.Equal(1, builds[UnchangingWatcher]);
-        Assert.Equal(1, builds[ChangingWatcher]);
+        Assert.Equal(2, builds[(object)Stateful]);
+        Assert.Equal(1, builds[(object)UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)ChangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)UnchangingWatcher]);
+        Assert.Equal(1, builds[(object)ChangingWatcher]);
 
         Assert.Equal(0, container.Read(UnchangingWatcher));
         Assert.Equal(0, container.Read(ChangingWatcher));
-        Assert.Equal(2, builds[Stateful]);
-        Assert.Equal(1, builds[UnchangingSuperPureDep]);
-        Assert.Equal(1, builds[ChangingSuperPureDep]);
-        Assert.Equal(1, builds[UnchangingWatcher]);
-        Assert.Equal(1, builds[ChangingWatcher]);
+        Assert.Equal(2, builds[(object)Stateful]);
+        Assert.Equal(1, builds[(object)UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)ChangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)UnchangingWatcher]);
+        Assert.Equal(1, builds[(object)ChangingWatcher]);
 
         container.Read(Stateful).Item2(1);
-        Assert.Equal(3, builds[Stateful]);
-        Assert.Equal(1, builds[UnchangingSuperPureDep]);
-        Assert.Equal(1, builds[ChangingSuperPureDep]);
-        Assert.Equal(1, builds[UnchangingWatcher]);
-        Assert.Equal(1, builds[ChangingWatcher]);
+        Assert.Equal(3, builds[(object)Stateful]);
+        Assert.Equal(1, builds[(object)UnchangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)ChangingSuperPureDep]);
+        Assert.Equal(1, builds[(object)UnchangingWatcher]);
+        Assert.Equal(1, builds[(object)ChangingWatcher]);
 
         Assert.Equal(0, container.Read(UnchangingWatcher));
         Assert.Equal(1, container.Read(ChangingWatcher));
-        Assert.Equal(3, builds[Stateful]);
-        Assert.Equal(2, builds[UnchangingSuperPureDep]);
-        Assert.Equal(2, builds[ChangingSuperPureDep]);
-        Assert.Equal(2, builds[UnchangingWatcher]);
-        Assert.Equal(2, builds[ChangingWatcher]);
+        Assert.Equal(3, builds[(object)Stateful]);
+        Assert.Equal(2, builds[(object)UnchangingSuperPureDep]);
+        Assert.Equal(2, builds[(object)ChangingSuperPureDep]);
+        Assert.Equal(2, builds[(object)UnchangingWatcher]);
+        Assert.Equal(2, builds[(object)ChangingWatcher]);
 
         // Disable the super pure gc
         container.Read(ImpureSink);
 
         container.Read(Stateful).Item2(2);
-        Assert.Equal(4, builds[Stateful]);
-        Assert.Equal(3, builds[UnchangingSuperPureDep]);
-        Assert.Equal(3, builds[ChangingSuperPureDep]);
-        Assert.Equal(2, builds[UnchangingWatcher]);
-        Assert.Equal(3, builds[ChangingWatcher]);
+        Assert.Equal(4, builds[(object)Stateful]);
+        Assert.Equal(3, builds[(object)UnchangingSuperPureDep]);
+        Assert.Equal(3, builds[(object)ChangingSuperPureDep]);
+        Assert.Equal(2, builds[(object)UnchangingWatcher]);
+        Assert.Equal(3, builds[(object)ChangingWatcher]);
 
         Assert.Equal(0, container.Read(UnchangingWatcher));
         Assert.Equal(2, container.Read(ChangingWatcher));
-        Assert.Equal(4, builds[Stateful]);
-        Assert.Equal(3, builds[UnchangingSuperPureDep]);
-        Assert.Equal(3, builds[ChangingSuperPureDep]);
-        Assert.Equal(2, builds[UnchangingWatcher]);
-        Assert.Equal(3, builds[ChangingWatcher]);
+        Assert.Equal(4, builds[(object)Stateful]);
+        Assert.Equal(3, builds[(object)UnchangingSuperPureDep]);
+        Assert.Equal(3, builds[(object)ChangingSuperPureDep]);
+        Assert.Equal(2, builds[(object)UnchangingWatcher]);
+        Assert.Equal(3, builds[(object)ChangingWatcher]);
     }
 
+    /// <summary>
+    /// Tests complex dependency graph.
+    /// </summary>
     // We use a more sophisticated graph here for a more thorough
     // test of all functionality
     //
@@ -294,13 +306,13 @@ public class BasicTest
 
         (int, Action<int>) A(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(A))
+            if (!builds.ContainsKey((object)A))
             {
-                builds[A] = 1;
+                builds[(object)A] = 1;
             }
             else
             {
-                builds[A] = builds[A] + 1;
+                builds[(object)A] = builds[(object)A] + 1;
             }
 
             return use.State(0);
@@ -308,13 +320,13 @@ public class BasicTest
 
         int B(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(B))
+            if (!builds.ContainsKey((object)B))
             {
-                builds[B] = 1;
+                builds[(object)B] = 1;
             }
             else
             {
-                builds[B] = builds[B] + 1;
+                builds[(object)B] = builds[(object)B] + 1;
             }
 
             use.Register(_ => new object());
@@ -323,13 +335,13 @@ public class BasicTest
 
         int H(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(H))
+            if (!builds.ContainsKey((object)H))
             {
-                builds[H] = 1;
+                builds[(object)H] = 1;
             }
             else
             {
-                builds[H] = builds[H] + 1;
+                builds[(object)H] = builds[(object)H] + 1;
             }
 
             return 1;
@@ -337,13 +349,13 @@ public class BasicTest
 
         int E(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(E))
+            if (!builds.ContainsKey((object)E))
             {
-                builds[E] = 1;
+                builds[(object)E] = 1;
             }
             else
             {
-                builds[E] = builds[E] + 1;
+                builds[(object)E] = builds[(object)E] + 1;
             }
 
             return use.Call(A).Item1 + use.Call(H);
@@ -351,13 +363,13 @@ public class BasicTest
 
         int F(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(F))
+            if (!builds.ContainsKey((object)F))
             {
-                builds[F] = 1;
+                builds[(object)F] = 1;
             }
             else
             {
-                builds[F] = builds[F] + 1;
+                builds[(object)F] = builds[(object)F] + 1;
             }
 
             use.Register(_ => new object());
@@ -366,13 +378,13 @@ public class BasicTest
 
         int C(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(C))
+            if (!builds.ContainsKey((object)C))
             {
-                builds[C] = 1;
+                builds[(object)C] = 1;
             }
             else
             {
-                builds[C] = builds[C] + 1;
+                builds[(object)C] = builds[(object)C] + 1;
             }
 
             return use.Call(B) + use.Call(F);
@@ -380,13 +392,13 @@ public class BasicTest
 
         int D(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(D))
+            if (!builds.ContainsKey((object)D))
             {
-                builds[D] = 1;
+                builds[(object)D] = 1;
             }
             else
             {
-                builds[D] = builds[D] + 1;
+                builds[(object)D] = builds[(object)D] + 1;
             }
 
             return use.Call(C);
@@ -394,63 +406,63 @@ public class BasicTest
 
         int G(ICapsuleHandle use)
         {
-            if (!builds.ContainsKey(G))
+            if (!builds.ContainsKey((object)G))
             {
-                builds[G] = 1;
+                builds[(object)G] = 1;
             }
             else
             {
-                builds[G] = builds[G] + 1;
+                builds[(object)G] = builds[(object)G] + 1;
             }
 
             return use.Call(C) + use.Call(F);
         }
 
         using var container = new Container();
-        Assert.True(builds.Count == 0);
+        Assert.Empty(builds);
 
         Assert.Equal(1, container.Read(D));
         Assert.Equal(2, container.Read(G));
-        Assert.Equal(1, builds[A]);
-        Assert.Equal(1, builds[B]);
-        Assert.Equal(1, builds[C]);
-        Assert.Equal(1, builds[D]);
-        Assert.Equal(1, builds[E]);
-        Assert.Equal(1, builds[F]);
-        Assert.Equal(1, builds[G]);
-        Assert.Equal(1, builds[H]);
+        Assert.Equal(1, builds[(object)A]);
+        Assert.Equal(1, builds[(object)B]);
+        Assert.Equal(1, builds[(object)C]);
+        Assert.Equal(1, builds[(object)D]);
+        Assert.Equal(1, builds[(object)E]);
+        Assert.Equal(1, builds[(object)F]);
+        Assert.Equal(1, builds[(object)G]);
+        Assert.Equal(1, builds[(object)H]);
 
         container.Read(A).Item2(0);
         Assert.Equal(1, container.Read(D));
         Assert.Equal(2, container.Read(G));
-        Assert.Equal(2, builds[A]);
-        Assert.Equal(1, builds[B]);
-        Assert.Equal(1, builds[C]);
-        Assert.Equal(1, builds[D]);
-        Assert.Equal(1, builds[E]);
-        Assert.Equal(1, builds[F]);
-        Assert.Equal(1, builds[G]);
-        Assert.Equal(1, builds[H]);
+        Assert.Equal(2, builds[(object)A]);
+        Assert.Equal(1, builds[(object)B]);
+        Assert.Equal(1, builds[(object)C]);
+        Assert.Equal(1, builds[(object)D]);
+        Assert.Equal(1, builds[(object)E]);
+        Assert.Equal(1, builds[(object)F]);
+        Assert.Equal(1, builds[(object)G]);
+        Assert.Equal(1, builds[(object)H]);
 
         container.Read(A).Item2(1);
-        Assert.Equal(3, builds[A]);
-        Assert.Equal(2, builds[B]);
-        Assert.Equal(1, builds[C]);
-        Assert.Equal(1, builds[D]);
-        Assert.Equal(2, builds[E]);
-        Assert.Equal(2, builds[F]);
-        Assert.Equal(1, builds[G]);
-        Assert.Equal(1, builds[H]);
+        Assert.Equal(3, builds[(object)A]);
+        Assert.Equal(2, builds[(object)B]);
+        Assert.Equal(1, builds[(object)C]);
+        Assert.Equal(1, builds[(object)D]);
+        Assert.Equal(2, builds[(object)E]);
+        Assert.Equal(2, builds[(object)F]);
+        Assert.Equal(1, builds[(object)G]);
+        Assert.Equal(1, builds[(object)H]);
 
         Assert.Equal(3, container.Read(D));
         Assert.Equal(5, container.Read(G));
-        Assert.Equal(3, builds[A]);
-        Assert.Equal(2, builds[B]);
-        Assert.Equal(2, builds[C]);
-        Assert.Equal(2, builds[D]);
-        Assert.Equal(2, builds[E]);
-        Assert.Equal(2, builds[F]);
-        Assert.Equal(2, builds[G]);
-        Assert.Equal(1, builds[H]);
+        Assert.Equal(3, builds[(object)A]);
+        Assert.Equal(2, builds[(object)B]);
+        Assert.Equal(2, builds[(object)C]);
+        Assert.Equal(2, builds[(object)D]);
+        Assert.Equal(2, builds[(object)E]);
+        Assert.Equal(2, builds[(object)F]);
+        Assert.Equal(2, builds[(object)G]);
+        Assert.Equal(1, builds[(object)H]);
     }
 }

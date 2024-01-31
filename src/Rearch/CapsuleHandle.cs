@@ -7,7 +7,7 @@ namespace Rearch;
 /// <summary>
 /// Implementation of the handle given to a <see cref="Capsule{T}"/> to build its data.
 /// </summary>
-internal class CapsuleHandle(UntypedCapsuleManager manager) : ICapsuleHandle
+internal sealed class CapsuleHandle(UntypedCapsuleManager manager) : ICapsuleHandle
 {
     /// <summary>
     /// Gets the capsule manager for this handle.
@@ -17,7 +17,7 @@ internal class CapsuleHandle(UntypedCapsuleManager manager) : ICapsuleHandle
     /// <summary>
     /// Gets index into manager's side effect data.
     /// </summary>
-    public int SideEffectDataIndex { get; private set; } = 0;
+    public int SideEffectDataIndex { get; private set; }
 
     /// <inheritdoc/>
     public T Call<T>(Capsule<T> capsule) =>

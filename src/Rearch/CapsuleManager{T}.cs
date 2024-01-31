@@ -8,7 +8,7 @@ namespace Rearch;
 /// Dataflow node that manages capsule data and effects.
 /// </summary>
 /// <typeparam name="T">Type of encapsulated data.</typeparam>
-internal class CapsuleManager<T> : UntypedCapsuleManager
+internal sealed class CapsuleManager<T> : UntypedCapsuleManager
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="CapsuleManager{T}"/> class.

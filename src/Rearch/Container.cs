@@ -39,7 +39,7 @@ public class Container : IDisposable
     internal Dictionary<object, UntypedCapsuleManager> Capsules => this.capsules;
 
     /// <summary>
-    /// Reads the current data of the supplied <see cref="Capsule"/>.
+    /// Reads the current data of the supplied <see cref="Capsule{T}"/>.
     /// </summary>
     /// <typeparam name="T">Type of encapsulated data.</typeparam>
     /// <param name="capsule">Capsule whose data to read.</param>

@@ -18,7 +18,7 @@ internal abstract class UntypedCapsuleManager(Container container) : DataflowGra
     /// <summary>
     /// Gets or sets a value indicating whether encapsulated data has been built.
     /// </summary>
-    public bool HasBuilt { get; protected set; } = false;
+    public bool HasBuilt { get; protected set; }
 
     /// <summary>
     /// Gets data of registered side effects.

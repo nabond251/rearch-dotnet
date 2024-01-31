@@ -29,7 +29,7 @@ internal abstract class DataflowGraphNode : IDisposable
 
         foreach (var node in buildOrder.Reverse())
         {
-            var isDisposable = node.IsSuperPure && !node.dependents.Any();
+            var isDisposable = node.IsSuperPure && node.dependents.Count == 0;
             if (isDisposable)
             {
                 node.Dispose();
@@ -136,7 +136,7 @@ internal abstract class DataflowGraphNode : IDisposable
         }
     }
 
-    private static ISet<DataflowGraphNode> GetDisposableNodesFromBuildOrder(
+    private static HashSet<DataflowGraphNode> GetDisposableNodesFromBuildOrder(
         IList<DataflowGraphNode> buildOrder)
     {
         HashSet<DataflowGraphNode> disposable = [];
@@ -156,7 +156,7 @@ internal abstract class DataflowGraphNode : IDisposable
         return disposable;
     }
 
-    private IList<DataflowGraphNode> CreateBuildOrder()
+    private List<DataflowGraphNode> CreateBuildOrder()
     {
         // We need some more information alongside of each node
         // in order to do the topological sort:
