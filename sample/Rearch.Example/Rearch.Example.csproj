@@ -9,6 +9,7 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>false</IsTestProject>
     <Version>0.0.0-dev.1</Version>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
