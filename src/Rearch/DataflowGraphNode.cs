@@ -18,32 +18,6 @@ internal abstract class DataflowGraphNode : IDisposable
     public abstract bool IsSuperPure { get; }
 
     /// <summary>
-    /// Prune unused nodes from the network.  Nodes are unused if nothing depends on them and they have no side effects.
-    /// </summary>
-    /// <param name="buildOrder">List of nodes to consider for pruning.</param>
-    /// <returns>List of nodes after pruning.</returns>
-    public static IEnumerable<DataflowGraphNode> GarbageCollectDisposableNodes(
-        IList<DataflowGraphNode> buildOrder)
-    {
-        var nonDisposable = new List<DataflowGraphNode>();
-
-        foreach (var node in buildOrder.Reverse())
-        {
-            var isDisposable = node.IsSuperPure && node.dependents.Count == 0;
-            if (isDisposable)
-            {
-                node.Dispose();
-            }
-            else
-            {
-                nonDisposable.Add(node);
-            }
-        }
-
-        return nonDisposable.AsEnumerable().Reverse();
-    }
-
-    /// <summary>
     /// Updates node data.
     /// </summary>
     /// <returns>A value indicating whether the node data changed.</returns>
