@@ -31,7 +31,7 @@ internal sealed class CapsuleManager<T> : UntypedCapsuleManager
     /// <summary>
     /// Gets encapsulated data, if any.
     /// </summary>
-    public T? Data { get; private set; }
+    public T Data { get; private set; } = default!;
 
     /// <inheritdoc/>
     public override bool BuildSelf()

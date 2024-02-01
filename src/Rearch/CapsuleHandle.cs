@@ -31,6 +31,6 @@ internal sealed class CapsuleHandle(UntypedCapsuleManager manager) : ICapsuleHan
             this.Manager.SideEffectData.Add(sideEffect(this.Manager));
         }
 
-        return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++];
+        return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++]!;
     }
 }
