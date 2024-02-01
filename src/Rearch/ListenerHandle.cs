@@ -5,7 +5,8 @@
 namespace Rearch;
 
 /// <summary>
-/// A handle onto the lifecycle of a listener from <see cref="Container.Listen(CapsuleListener)"/>.
+/// A handle onto the lifecycle of a listener from
+/// <see cref="Container.Listen(CapsuleListener)"/>.
 /// You <i>must</i> <see cref="Dispose()"/> the <see cref="ListenerHandle"/>
 /// when you no longer need the listener in order to prevent leaks.
 /// </summary>

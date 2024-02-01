@@ -35,7 +35,9 @@ public class ExampleTest
           "CountPlusOne should be 2 after count increment");
     }
 
-    private static (int Count, Action<int> SetCount) CountManager(ICapsuleHandle use) => use.State(0);
+    private static (int Count, Action<int> SetCount) CountManager(
+        ICapsuleHandle use) =>
+        use.State(0);
 
     private static Action CountIncrementer(ICapsuleHandle use)
     {
@@ -43,7 +45,8 @@ public class ExampleTest
         return () => setCount(count + 1);
     }
 
-    private static int Count(ICapsuleHandle use) => use.Invoke(CountManager).Count;
+    private static int Count(ICapsuleHandle use) =>
+        use.Invoke(CountManager).Count;
 
     private static int CountPlusOne(ICapsuleHandle use) => use.Invoke(Count) + 1;
 }

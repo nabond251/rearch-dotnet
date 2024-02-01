@@ -9,12 +9,15 @@ namespace Rearch;
 /// See the documentation for more.
 /// </summary>
 /// <typeparam name="T">Type of side effect result.</typeparam>
-/// <param name="sideEffectApi">The API to create this side effect's state.</param>
+/// <param name="sideEffectApi">
+/// The API to create this side effect's state.
+/// </param>
 /// <returns>Side effect result.</returns>
 public delegate T SideEffect<out T>(ISideEffectApi sideEffectApi);
 
 /// <summary>
-/// Provides a mechanism (<see cref="Register{T}(SideEffect{T})"/>) to register side effects.
+/// Provides a mechanism (<see cref="Register{T}(SideEffect{T})"/>) to register
+/// side effects.
 /// </summary>
 public interface ISideEffectRegistrar
 {

@@ -48,15 +48,19 @@ public class Container : IDisposable
         this.Manager(capsule).Data;
 
     /// <summary>
-    /// <i>Temporarily</i> listens to changes in a given set of <see cref="Capsule{T}"/>s.
+    /// <i>Temporarily</i> listens to changes in a given set of
+    /// <see cref="Capsule{T}"/>s.
     /// If you want to listen to capsule(s) <i>not temporarily</i>,
-    /// instead just make an impure capsule and <see cref="Read{T}(Capsule{T})"/> it once to initialize it.
+    /// instead just make an impure capsule and
+    /// <see cref="Read{T}(Capsule{T})"/> it once to initialize it.
     /// <c>Listen</c> calls the supplied listener immediately,
     /// and then after any capsules its listening to change.
     /// </summary>
     /// <param name="listener">Capsule listener.</param>
     /// <returns>Listener handle to dispose when done listening.</returns>
-    /// <remarks><see cref="ListenerHandle"/> will leak its listener if it is not disposed.</remarks>
+    /// <remarks>
+    /// <see cref="ListenerHandle"/> will leak its listener if it is not disposed.
+    /// </remarks>
     public ListenerHandle Listen(CapsuleListener listener)
     {
         // Create a temporary *impure* capsule so that it doesn't get super-pure

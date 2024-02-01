@@ -137,7 +137,8 @@ public class BasicTest
         void SetState(int state) => container.Read(Stateful).Item2(state);
 
         List<int> states = [];
-        void Listener(ICapsuleReader use) => states.Add(use.Invoke(Stateful).Item1);
+        void Listener(ICapsuleReader use) =>
+            states.Add(use.Invoke(Stateful).Item1);
 
         SetState(1);
         var handle1 = container.Listen(Listener);
@@ -188,7 +189,8 @@ public class BasicTest
             }
             else
             {
-                builds[(object)UnchangingSuperPureDep] = builds[(object)UnchangingSuperPureDep] + 1;
+                builds[(object)UnchangingSuperPureDep] =
+                    builds[(object)UnchangingSuperPureDep] + 1;
             }
 
             use.Invoke(Stateful);
@@ -217,7 +219,8 @@ public class BasicTest
             }
             else
             {
-                builds[(object)ChangingSuperPureDep] = builds[(object)ChangingSuperPureDep] + 1;
+                builds[(object)ChangingSuperPureDep] =
+                    builds[(object)ChangingSuperPureDep] + 1;
             }
 
             return use.Invoke(Stateful).Item1;
@@ -231,7 +234,8 @@ public class BasicTest
             }
             else
             {
-                builds[(object)ChangingWatcher] = builds[(object)ChangingWatcher] + 1;
+                builds[(object)ChangingWatcher] =
+                    builds[(object)ChangingWatcher] + 1;
             }
 
             return use.Invoke(ChangingSuperPureDep);

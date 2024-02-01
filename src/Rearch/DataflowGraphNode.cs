@@ -162,7 +162,8 @@ internal abstract class DataflowGraphNode : IDisposable
         // in order to do the topological sort:
         // - False is for the first visit, which adds all deps to be visited,
         //   and then node again
-        // - True is for the second visit, which pushes the node to the build order
+        // - True is for the second visit, which pushes the node to the build
+        //   order
         var toVisitStack = new List<(bool, DataflowGraphNode)>
         {
             (false, this),
@@ -182,9 +183,12 @@ internal abstract class DataflowGraphNode : IDisposable
             }
             else
             {
-                // New node, so mark this node to be added later and process dependents
+                // New node, so mark this node to be added later and process
+                // dependents
                 visited.Add(node);
-                toVisitStack.Add((true, node)); // mark to be added to build order later
+
+                // mark to be added to build order later
+                toVisitStack.Add((true, node));
                 node.dependents
                     .Where(dep => !visited.Contains(dep))
                     .ToList()

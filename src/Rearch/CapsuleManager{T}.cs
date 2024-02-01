@@ -45,7 +45,9 @@ internal sealed class CapsuleManager<T> : UntypedCapsuleManager
             !this.HasBuilt ||
             (newData is null && this.Data is not null) ||
             (newData is not null && this.Data is null) ||
-            (newData is not null && this.Data is not null && !newData.Equals(this.Data));
+            (
+                newData is not null && this.Data is not null &&
+                !newData.Equals(this.Data));
         this.Data = newData;
         this.HasBuilt = true;
         return didChange;

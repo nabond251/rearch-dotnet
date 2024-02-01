@@ -5,9 +5,11 @@
 namespace Rearch;
 
 /// <summary>
-/// Implementation of the handle given to a <see cref="Capsule{T}"/> to build its data.
+/// Implementation of the handle given to a <see cref="Capsule{T}"/> to build its
+/// data.
 /// </summary>
-internal sealed class CapsuleHandle(UntypedCapsuleManager manager) : ICapsuleHandle
+internal sealed class CapsuleHandle(UntypedCapsuleManager manager) :
+    ICapsuleHandle
 {
     /// <summary>
     /// Gets the capsule manager for this handle.

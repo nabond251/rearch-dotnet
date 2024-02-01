@@ -31,7 +31,9 @@ public static class BuiltinSideEffectExtensions
     /// Side effect that calls the supplied <paramref name="callback"/> once,
     /// on the first build.
     /// </summary>
-    /// <typeparam name="T">Type of side effect <paramref name="callback"/> result.</typeparam>
+    /// <typeparam name="T">
+    /// Type of side effect <paramref name="callback"/> result.
+    /// </typeparam>
     /// <param name="registrar">Side effect registrar.</param>
     /// <param name="callback">Callback to be called once.</param>
     /// <returns><paramref name="callback"/> result.</returns>
