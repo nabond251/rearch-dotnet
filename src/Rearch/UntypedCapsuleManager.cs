@@ -42,7 +42,7 @@ internal abstract class UntypedCapsuleManager(Container container) :
     /// <returns><paramref name="otherCapsule"/> data.</returns>
     public TRead Read<TRead>(Capsule<TRead> otherCapsule)
     {
-        var otherManager = this.Container.Manager(otherCapsule);
+        var otherManager = this.Container.ManagerOf(otherCapsule);
         this.AddDependency(otherManager);
         return otherManager.Data;
     }

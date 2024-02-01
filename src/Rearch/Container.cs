@@ -45,7 +45,7 @@ public class Container : IDisposable
     /// <param name="capsule">Capsule whose data to read.</param>
     /// <returns><paramref name="capsule"/> data.</returns>
     public T Read<T>(Capsule<T> capsule) =>
-        this.Manager(capsule).Data;
+        this.ManagerOf(capsule).Data;
 
     /// <summary>
     /// <i>Temporarily</i> listens to changes in a given set of
@@ -91,7 +91,7 @@ public class Container : IDisposable
     /// <typeparam name="T">Type of encapsulated data.</typeparam>
     /// <param name="capsule">Capsule whose manager to get.</param>
     /// <returns><paramref name="capsule"/> manager.</returns>
-    internal CapsuleManager<T> Manager<T>(Capsule<T> capsule)
+    internal CapsuleManager<T> ManagerOf<T>(Capsule<T> capsule)
     {
         if (!this.Capsules.ContainsKey(capsule))
         {
