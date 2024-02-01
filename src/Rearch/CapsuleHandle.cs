@@ -20,7 +20,7 @@ internal sealed class CapsuleHandle(UntypedCapsuleManager manager) : ICapsuleHan
     public int SideEffectDataIndex { get; private set; }
 
     /// <inheritdoc/>
-    public T Call<T>(Capsule<T> capsule) =>
+    public T Invoke<T>(Capsule<T> capsule) =>
         this.Manager.Read(capsule);
 
     /// <inheritdoc/>

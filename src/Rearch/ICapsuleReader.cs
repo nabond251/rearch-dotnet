@@ -15,5 +15,5 @@ public interface ICapsuleReader
     /// <typeparam name="T">Type of encapsulated state.</typeparam>
     /// <param name="capsule">Capsule whose state to use.</param>
     /// <returns><paramref name="capsule"/> state.</returns>
-    T Call<T>(Capsule<T> capsule);
+    T Invoke<T>(Capsule<T> capsule);
 }

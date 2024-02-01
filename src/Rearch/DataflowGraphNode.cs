@@ -180,7 +180,7 @@ internal abstract class DataflowGraphNode : IDisposable
                 // Already processed this node's dependents, so add to build order
                 buildOrderStack.Add(node);
             }
-            else if (!visited.Contains(node))
+            else
             {
                 // New node, so mark this node to be added later and process dependents
                 visited.Add(node);

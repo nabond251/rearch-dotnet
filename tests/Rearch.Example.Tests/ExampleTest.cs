@@ -39,11 +39,11 @@ public class ExampleTest
 
     private static Action CountIncrementer(ICapsuleHandle use)
     {
-        var (count, setCount) = use.Call(CountManager);
+        var (count, setCount) = use.Invoke(CountManager);
         return () => setCount(count + 1);
     }
 
-    private static int Count(ICapsuleHandle use) => use.Call(CountManager).Count;
+    private static int Count(ICapsuleHandle use) => use.Invoke(CountManager).Count;
 
-    private static int CountPlusOne(ICapsuleHandle use) => use.Call(Count) + 1;
+    private static int CountPlusOne(ICapsuleHandle use) => use.Invoke(Count) + 1;
 }

@@ -16,7 +16,7 @@ public class BasicTest
     public void BasicCountExample()
     {
         int Count(ICapsuleHandle x) => 0;
-        int CountPlusOne(ICapsuleHandle use) => use.Call(Count) + 1;
+        int CountPlusOne(ICapsuleHandle use) => use.Invoke(Count) + 1;
 
         using var container = new Container();
         Assert.Equal(0, container.Read(Count));
@@ -66,7 +66,7 @@ public class BasicTest
     public void StateUpdatesForDependentCapsule()
     {
         (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
-        int PlusOne(ICapsuleHandle use) => use.Call(Stateful).Item1 + 1;
+        int PlusOne(ICapsuleHandle use) => use.Invoke(Stateful).Item1 + 1;
 
         using var container = new Container();
 
@@ -137,7 +137,7 @@ public class BasicTest
         void SetState(int state) => container.Read(Stateful).Item2(state);
 
         List<int> states = [];
-        void Listener(ICapsuleReader use) => states.Add(use.Call(Stateful).Item1);
+        void Listener(ICapsuleReader use) => states.Add(use.Invoke(Stateful).Item1);
 
         SetState(1);
         var handle1 = container.Listen(Listener);
@@ -191,7 +191,7 @@ public class BasicTest
                 builds[(object)UnchangingSuperPureDep] = builds[(object)UnchangingSuperPureDep] + 1;
             }
 
-            use.Call(Stateful);
+            use.Invoke(Stateful);
             return 0;
         }
 
@@ -206,7 +206,7 @@ public class BasicTest
                 builds[(object)UnchangingWatcher] = builds[(object)UnchangingWatcher] + 1;
             }
 
-            return use.Call(UnchangingSuperPureDep);
+            return use.Invoke(UnchangingSuperPureDep);
         }
 
         int ChangingSuperPureDep(ICapsuleHandle use)
@@ -220,7 +220,7 @@ public class BasicTest
                 builds[(object)ChangingSuperPureDep] = builds[(object)ChangingSuperPureDep] + 1;
             }
 
-            return use.Call(Stateful).Item1;
+            return use.Invoke(Stateful).Item1;
         }
 
         int ChangingWatcher(ICapsuleHandle use)
@@ -234,14 +234,14 @@ public class BasicTest
                 builds[(object)ChangingWatcher] = builds[(object)ChangingWatcher] + 1;
             }
 
-            return use.Call(ChangingSuperPureDep);
+            return use.Invoke(ChangingSuperPureDep);
         }
 
         object ImpureSink(ICapsuleHandle use)
         {
             use.Register(_ => new object());
-            use.Call(ChangingWatcher);
-            use.Call(UnchangingWatcher);
+            use.Invoke(ChangingWatcher);
+            use.Invoke(UnchangingWatcher);
 
             return new object();
         }
@@ -347,7 +347,7 @@ public class BasicTest
             }
 
             use.Register(_ => new object());
-            return use.Call(A).Item1;
+            return use.Invoke(A).Item1;
         }
 
         int H(ICapsuleHandle use)
@@ -375,7 +375,7 @@ public class BasicTest
                 builds[(object)E] = builds[(object)E] + 1;
             }
 
-            return use.Call(A).Item1 + use.Call(H);
+            return use.Invoke(A).Item1 + use.Invoke(H);
         }
 
         int F(ICapsuleHandle use)
@@ -390,7 +390,7 @@ public class BasicTest
             }
 
             use.Register(_ => new object());
-            return use.Call(E);
+            return use.Invoke(E);
         }
 
         int C(ICapsuleHandle use)
@@ -404,7 +404,7 @@ public class BasicTest
                 builds[(object)C] = builds[(object)C] + 1;
             }
 
-            return use.Call(B) + use.Call(F);
+            return use.Invoke(B) + use.Invoke(F);
         }
 
         int D(ICapsuleHandle use)
@@ -418,7 +418,7 @@ public class BasicTest
                 builds[(object)D] = builds[(object)D] + 1;
             }
 
-            return use.Call(C);
+            return use.Invoke(C);
         }
 
         int G(ICapsuleHandle use)
@@ -432,7 +432,7 @@ public class BasicTest
                 builds[(object)G] = builds[(object)G] + 1;
             }
 
-            return use.Call(C) + use.Call(F);
+            return use.Invoke(C) + use.Invoke(F);
         }
 
         using var container = new Container();
