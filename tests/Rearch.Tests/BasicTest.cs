@@ -33,12 +33,14 @@ public class BasicTest
 
         using var container = new Container();
 
+        static void Command1(Container container)
         {
             var (state, setState) = container.Read(Stateful);
             Assert.Equal(0, state);
             setState(1);
         }
 
+        static void Query1Command23(Container container)
         {
             var (state, setState) = container.Read(Stateful);
             Assert.Equal(1, state);
@@ -46,10 +48,15 @@ public class BasicTest
             setState(3);
         }
 
+        static void Query3(Container container)
         {
             var (state, _) = container.Read(Stateful);
             Assert.Equal(3, state);
         }
+
+        Command1(container);
+        Query1Command23(container);
+        Query3(container);
     }
 
     /// <summary>
@@ -63,6 +70,7 @@ public class BasicTest
 
         using var container = new Container();
 
+        void Command(Container container)
         {
             var (state, setState) = container.Read(Stateful);
             var statefulPlusOne = container.Read(PlusOne);
@@ -71,12 +79,16 @@ public class BasicTest
             setState(1);
         }
 
+        void Query(Container container)
         {
             var (state, _) = container.Read(Stateful);
             var statefulPlusOne = container.Read(PlusOne);
             Assert.Equal(1, state);
             Assert.Equal(2, statefulPlusOne);
         }
+
+        Command(container);
+        Query(container);
     }
 
     /// <summary>
@@ -93,6 +105,7 @@ public class BasicTest
 
         using var container = new Container();
 
+        static void Command(Container container)
         {
             var ((s1, set1), (s2, set2)) = container.Read(Multi);
             Assert.Equal(0, s1);
@@ -101,11 +114,15 @@ public class BasicTest
             set2(2);
         }
 
+        static void Query(Container container)
         {
             var ((s1, _), (s2, _)) = container.Read(Multi);
             Assert.Equal(1, s1);
             Assert.Equal(2, s2);
         }
+
+        Command(container);
+        Query(container);
     }
 
     /// <summary>
