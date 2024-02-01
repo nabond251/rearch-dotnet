@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\sample\Rearch.Example\Rearch.Example.csproj" />
+    <ProjectReference Include="..\..\src\Rearch\Rearch.csproj" />
   </ItemGroup>
 
 </Project>
