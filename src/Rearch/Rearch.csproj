@@ -4,8 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Authors>Nathaniel Bond</Authors>
+    <Company>SDG Apps</Company>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/nabond251/rearch-dotnet</RepositoryUrl>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <Title>Rearch.NET</Title>
+    <Copyright>Copyright (c) Soli Deo Gloria Apps. All rights reserved.</Copyright>
+    <Description>Re-imagined approach to application design and architecture.  C# port of [rearch-dart](https://github.com/GregoryConrad/rearch-dart/).</Description>
+
+    <PackageReleaseNotes>v0.0.0-dev.1
+ - FEAT: add == check to skip some rebuilds.
+ - FEAT: working mvp.</PackageReleaseNotes>
+
+    <Version>0.0.0-dev.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

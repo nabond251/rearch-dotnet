@@ -2,13 +2,51 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
-namespace Example.Tests;
+namespace Rearch.Example.Tests;
 
+/// <summary>
+/// Test example.
+/// </summary>
 public class ExampleTest
 {
+    /// <summary>
+    /// Test that example runs.
+    /// </summary>
     [Fact]
     public void MainFunctionRunsCorrectly()
     {
-        Example.Main();
+        using var container = new Container();
+
+        Assert.True(
+            container.Read(Count) == 0,
+            "Count should start at 0");
+        Assert.True(
+          container.Read(CountPlusOne) == 1,
+          "CountPlusOne should start at 1");
+
+        var incrementCount = container.Read(CountIncrementer);
+        incrementCount();
+
+        Assert.True(
+          container.Read(Count) == 1,
+          "Count should be 1 after count increment");
+        Assert.True(
+          container.Read(CountPlusOne) == 2,
+          "CountPlusOne should be 2 after count increment");
     }
+
+    private static (int Count, Action<int> SetCount) CountManager(
+        ICapsuleHandle use) =>
+        use.State(0);
+
+    private static Action CountIncrementer(ICapsuleHandle use)
+    {
+        var (count, setCount) = use.Invoke(CountManager);
+        return () => setCount(count + 1);
+    }
+
+    private static int Count(ICapsuleHandle use) =>
+        use.Invoke(CountManager).Count;
+
+    private static int CountPlusOne(ICapsuleHandle use) => use.Invoke(Count) + 1;
 }

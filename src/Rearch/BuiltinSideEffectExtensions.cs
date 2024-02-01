@@ -1,4 +1,4 @@
-﻿// <copyright file="SideEffects.cs" company="SdgApps">
+// <copyright file="BuiltinSideEffectExtensions.cs" company="SdgApps">
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
@@ -13,6 +13,8 @@ public static class BuiltinSideEffectExtensions
     /// Convenience side effect that gives a copy of the
     /// <see cref="ISideEffectApi"/>.
     /// </summary>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <returns>A copy of the <see cref="ISideEffectApi"/>.</returns>
     public static ISideEffectApi Api(this ISideEffectRegistrar registrar) =>
         registrar.Register((api) => api);
 
@@ -20,6 +22,8 @@ public static class BuiltinSideEffectExtensions
     /// Convenience side effect that gives a copy of
     /// <see cref="ISideEffectApi.Rebuild"/>.
     /// </summary>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <returns>A copy of <see cref="ISideEffectApi.Rebuild"/>.</returns>
     public static Action Rebuilder(this ISideEffectRegistrar registrar) =>
         registrar.Api().Rebuild;
 
@@ -27,6 +31,12 @@ public static class BuiltinSideEffectExtensions
     /// Side effect that calls the supplied <paramref name="callback"/> once,
     /// on the first build.
     /// </summary>
+    /// <typeparam name="T">
+    /// Type of side effect <paramref name="callback"/> result.
+    /// </typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="callback">Callback to be called once.</param>
+    /// <returns><paramref name="callback"/> result.</returns>
     public static T Callonce<T>(
         this ISideEffectRegistrar registrar,
         Func<T> callback) =>
@@ -35,10 +45,14 @@ public static class BuiltinSideEffectExtensions
     /// <summary>
     /// Side effect that provides a way for capsules to contain some state,
     /// where the initial state is computationally expensive.
-    /// Similar to the `useState` hook from React;
+    /// Similar to the <c>useState</c> hook from React;
     /// see https://react.dev/reference/react/useState.
     /// </summary>
-    public static (T, Action<T>) LazyState<T>(
+    /// <typeparam name="T">Type of side effect state.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="init">Callback to initialize side effect state.</param>
+    /// <returns>Side effect state and setter.</returns>
+    public static (T State, Action<T> SetState) LazyState<T>(
         this ISideEffectRegistrar registrar,
         Func<T> init)
     {
@@ -61,10 +75,14 @@ public static class BuiltinSideEffectExtensions
 
     /// <summary>
     /// Side effect that provides a way for capsules to contain some state.
-    /// Similar to the `useState` hook from React;
+    /// Similar to the <c>useState</c> hook from React;
     /// see https://react.dev/reference/react/useState.
     /// </summary>
-    public static (T, Action<T>) State<T>(
+    /// <typeparam name="T">Type of side effect state.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="initial">Initial side effect state.</param>
+    /// <returns>Side effect state and setter.</returns>
+    public static (T State, Action<T> SetState) State<T>(
         this ISideEffectRegistrar registrar,
         T initial) =>
         registrar.LazyState(() => initial);
@@ -72,9 +90,13 @@ public static class BuiltinSideEffectExtensions
     /// <summary>
     /// Side effect that provides a way for capsules to hold onto some value
     /// between builds, where the initial value is computationally expensive.
-    /// Similar to the `useRef` hook from React;
+    /// Similar to the <c>useRef</c> hook from React;
     /// see https://react.dev/reference/react/useRef.
     /// </summary>
+    /// <typeparam name="T">Type of side effect lazy value.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="init">Callback to initialize side effect lazy value.</param>
+    /// <returns>Side effect lazy value.</returns>
     public static T LazyValue<T>(
         this ISideEffectRegistrar registrar,
         Func<T> init) =>
@@ -83,9 +105,13 @@ public static class BuiltinSideEffectExtensions
     /// <summary>
     /// Side effect that provides a way for capsules to hold onto some value
     /// between builds.
-    /// Similar to the `useRef` hook from React;
+    /// Similar to the <c>useRef</c> hook from React;
     /// see https://react.dev/reference/react/useRef.
     /// </summary>
+    /// <typeparam name="T">Type of side effect value.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="initial">Initial side effect value.</param>
+    /// <returns>Side effect value.</returns>
     public static T Value<T>(
         this ISideEffectRegistrar registrar,
         T initial) =>
