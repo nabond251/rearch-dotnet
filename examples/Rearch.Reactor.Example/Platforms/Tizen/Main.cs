@@ -2,7 +2,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using System;
 
-namespace TodoApp
+namespace Rearch.Reactor.Example
 {
     internal class Program : MauiApplication
     {

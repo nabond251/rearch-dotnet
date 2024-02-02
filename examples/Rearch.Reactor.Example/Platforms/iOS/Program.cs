@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace TodoApp
+namespace Rearch.Reactor.Example
 {
     public class Program
     {

@@ -16,7 +16,7 @@
     <!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
     <OutputType>Exe</OutputType>
-    <RootNamespace>TodoApp</RootNamespace>
+    <RootNamespace>Rearch.Reactor.Example</RootNamespace>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
     <Nullable>enable</Nullable>

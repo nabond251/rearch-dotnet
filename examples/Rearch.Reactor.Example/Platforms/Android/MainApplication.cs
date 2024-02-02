@@ -2,7 +2,7 @@
 using Android.Runtime;
 using System;
 
-namespace TodoApp
+namespace Rearch.Reactor.Example
 {
     [Application]
     public class MainApplication : MauiApplication

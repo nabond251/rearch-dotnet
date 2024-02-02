@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TodoApp.Models;
+using Rearch.Reactor.Example.Models;
 
-namespace TodoApp.Pages;
+namespace Rearch.Reactor.Example.Pages;
 
 class MainPageState
 {

@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace TodoApp
+namespace Rearch.Reactor.Example
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

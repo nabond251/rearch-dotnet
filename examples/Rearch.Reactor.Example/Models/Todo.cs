@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TodoApp.Models;
+namespace Rearch.Reactor.Example.Models;
 
 [Model]
 partial class Todo

@@ -5,11 +5,11 @@ using ReactorData.Sqlite;
 using System;
 using System.IO;
 using System.Reflection.Metadata;
-using TodoApp.Models;
-using TodoApp.Pages;
+using Rearch.Reactor.Example.Models;
+using Rearch.Reactor.Example.Pages;
 
 
-namespace TodoApp;
+namespace Rearch.Reactor.Example;
 
 public static class MauiProgram
 {
