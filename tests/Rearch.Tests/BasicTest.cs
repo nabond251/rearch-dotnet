@@ -175,21 +175,17 @@ public class BasicTest
             return (T)value;
         }
 
-        var genericDouble1 = Generic<double>;
-        var genericDouble2 = Generic<double>;
+        Capsule<double> genericDouble1 = Generic<double>;
+        Capsule<double> genericDouble2 = Generic<double>;
 
         using var container = new Container();
-        List<(object, object)> toTry = [
-            ((object)Generic<int>, 0),
-            ((object)Generic<int>, 0),
-            (genericDouble1, 0.0),
-            (genericDouble2, 0.0),
-        ];
-        foreach (var (f, val) in toTry)
-        {
-            value = val;
-            container.Read<object>((f as Capsule<object?>)!);
-        }
+
+        value = 0;
+        container.Read(Generic<int>);
+        container.Read(Generic<int>);
+        value = 0.0;
+        container.Read(genericDouble1);
+        container.Read(genericDouble2);
 
         Assert.Equal(2, builds); // once for int, once for double
     }
