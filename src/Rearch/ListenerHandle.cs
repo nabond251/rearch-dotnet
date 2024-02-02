@@ -43,7 +43,7 @@ public class ListenerHandle : IDisposable
     {
         if (disposing)
         {
-            var capsules = this.container.capsules;
+            var capsules = this.container.Capsules;
             if (capsules.ContainsKey(this.capsule))
             {
                 capsules[this.capsule].Dispose();
