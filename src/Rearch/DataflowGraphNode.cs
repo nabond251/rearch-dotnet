@@ -72,9 +72,9 @@ internal abstract class DataflowGraphNode : IDisposable
 
             if (disposableNodes.Contains(node))
             {
-                // Note: dependency/dependent relationships will be after this,
-                // since we are disposing all dependents in the build order,
-                // because we are adding this node to changedNodes
+                // Note: dependency/dependent relationships will be ok after
+                // this, since we are disposing all dependents in the build
+                // order, because we are adding this node to changedNodes
                 node.Dispose();
                 changedNodes.Add(node);
             }
