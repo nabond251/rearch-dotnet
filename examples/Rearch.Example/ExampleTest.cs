@@ -2,7 +2,7 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
-namespace Rearch.Example.Tests;
+namespace Rearch.Example;
 
 /// <summary>
 /// Test example.
