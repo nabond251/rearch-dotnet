@@ -14,6 +14,7 @@ using MauiReactor;
 /// <see cref="Capsule{T}"/>s and register <see cref="SideEffect{T}"/>s, so all
 /// Capsule-specific methodologies carry over.
 /// </summary>
-public interface IComponentHandle : ICapsuleReader, IComponentSideEffectRegistrar
+public interface IComponentHandle :
+    ICapsuleReader, IComponentSideEffectRegistrar
 {
 }

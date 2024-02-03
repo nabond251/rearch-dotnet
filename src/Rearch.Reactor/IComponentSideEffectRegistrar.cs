@@ -18,14 +18,15 @@ namespace Rearch.Reactor;
 /// The API to create this side effect's state.
 /// </param>
 /// <returns>Side effect result.</returns>
-public delegate T ComponentSideEffect<out T>(ISideEffectApi sideEffectApi);
+public delegate T ComponentSideEffect<out T>(
+    IComponentSideEffectApi sideEffectApi);
 
 /// <summary>
 /// Represents an object that can
 /// <see cref="Register{T}(ComponentSideEffect{T})"/>
 /// <see cref="ComponentSideEffect{T}"/>s.
 /// </summary>
-public interface IComponentSideEffectRegistrar
+public interface IComponentSideEffectRegistrar : ISideEffectRegistrar
 {
     /// <summary>
     /// Registers the given side effect.

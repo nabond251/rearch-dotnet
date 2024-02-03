@@ -7,18 +7,11 @@ namespace Rearch.Reactor;
 using Rearch.Reactor.Components;
 
 /// <summary>
-/// An <c>Action</c> callback.
-/// </summary>
-public delegate void ComponentSideEffectApiCallback();
-
-/// <summary>
 /// The API exposed to <see cref="CapsuleConsumer"/>s to extend their
 /// functionality.
 /// </summary>
 public interface IComponentSideEffectApi : ISideEffectApi
 {
-    CapsuleConsumer Context { get; }
-
     /// <summary>
     /// Adds an unmount lifecycle listener.
     /// </summary>

@@ -24,7 +24,14 @@ public delegate T Capsule<out T>(ICapsuleHandle handle);
 public delegate void CapsuleListener(ICapsuleReader capsuleReader);
 
 /// <summary>
-/// Contains the data of <see cref="Capsule{T}"/>s.
+/// Defines what a <see cref="SideEffect{T}"/> should look like (a
+/// <see cref="Func{T, TResult}"/> that consumes an
+/// <see cref="ISideEffectApi"/> and returns something).
+///
+/// If your side effect is more advanced or requires parameters,
+/// simply make a callable class instead of just a regular
+/// <see cref="Func{T, TResult}"/>!
+///
 /// See the documentation for more.
 /// </summary>
 public class CapsuleContainer : IDisposable

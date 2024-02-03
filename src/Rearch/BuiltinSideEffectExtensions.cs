@@ -2,9 +2,6 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
-using System.Diagnostics.Metrics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace Rearch;
 
 /// <summary>
@@ -182,6 +179,32 @@ public static class BuiltinSideEffectExtensions
         }
 
         return getData();
+    }
+
+    /// <summary>
+    /// Equivalent to the `useEffect` hook from React.
+    /// See https://react.dev/reference/react/useEffect.
+    /// </summary>
+    public static void Effect(
+        this ISideEffectRegistrar registrar,
+        Func<Action?> effect,
+        IList<object?>? dependencies = null)
+    {
+        var oldDependencies = registrar.Previous(dependencies);
+        var (getDispose, setDispose) =
+            registrar.RawValueWrapper<Action?>(() => null);
+        registrar.Register((api) =>
+        {
+            api.RegisterDispose(() => getDispose()?.Invoke());
+            return new object();
+        });
+
+        if (dependencies == null ||
+            DidDepsListChange(dependencies, oldDependencies))
+        {
+            getDispose()?.Invoke();
+            setDispose(effect());
+        }
     }
 
     // TODO(nabond251): other side effects

@@ -19,7 +19,6 @@ public abstract partial class CapsuleConsumer : Component
     IParameter<CapsuleContainerParameter> containerParameter;
 
     public readonly HashSet<SideEffectApiCallback> unmountListeners = [];
-    public readonly HashSet<SideEffectApiCallback> disposeListeners = [];
     public readonly List<object?> sideEffectData = [];
     public readonly List<ListenerHandle> listenerHandles = [];
 
@@ -58,6 +57,21 @@ public abstract partial class CapsuleConsumer : Component
     /// <returns>Rendered node.</returns>
     public abstract VisualNode Render(IComponentHandle use);
 
+    protected override void OnWillUnmount()
+    {
+        foreach (var listener in this.unmountListeners)
+        {
+            listener();
+        }
+
+        this.ClearHandles();
+
+        // Clean up after any side effects to avoid possible leaks
+        this.unmountListeners.Clear();
+
+        base.OnWillUnmount();
+    }
+
     internal new void Invalidate() => base.Invalidate();
 }
 
@@ -80,10 +94,10 @@ internal sealed class ComponentSideEffectApi(CapsuleConsumer manager) : ICompone
         this.Manager.unmountListeners.Remove(callback);
 
     public void RegisterDispose(SideEffectApiCallback callback) =>
-        this.Manager.disposeListeners.Add(callback);
+        this.Manager.unmountListeners.Add(callback);
 
     public void UnregisterDispose(SideEffectApiCallback callback) =>
-        this.Manager.disposeListeners.Remove(callback);
+        this.Manager.unmountListeners.Remove(callback);
 }
 
 internal class ComponentHandle(
@@ -119,7 +133,15 @@ internal class ComponentHandle(
     }
 
     /// <inheritdoc/>
-    public T Register<T>(ComponentSideEffect<T> sideEffect)
+    public T Register<T>(SideEffect<T> sideEffect) =>
+        this.RegisterInternal<T>(api => sideEffect(api));
+
+    /// <inheritdoc/>
+    public T Register<T>(ComponentSideEffect<T> sideEffect) =>
+        this.RegisterInternal<T>(api => sideEffect(api));
+
+    private T RegisterInternal<T>(
+        Func<IComponentSideEffectApi, object?> sideEffect)
     {
         if (this.sideEffectDataIndex == api.Manager.sideEffectData.Count)
         {
@@ -127,5 +149,5 @@ internal class ComponentHandle(
         }
 
         return (T)api.Manager.sideEffectData[this.sideEffectDataIndex++]!;
-  }
+    }
 }

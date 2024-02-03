@@ -37,4 +37,10 @@ public partial class CapsuleContainerProvider<TComponent> : Component
     {
         return new TComponent();
     }
+
+    protected override void OnWillUnmount()
+    {
+        base.OnWillUnmount();
+        this.containerParameter.Value.Container.Dispose();
+    }
 }
