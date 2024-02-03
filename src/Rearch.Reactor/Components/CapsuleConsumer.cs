@@ -16,7 +16,7 @@ using MauiReactor.Parameters;
 public abstract partial class CapsuleConsumer : Component
 {
     [Param]
-    IParameter<CapsuleContainer> containerParameter;
+    IParameter<CapsuleContainerParameter> containerParameter;
 
     public readonly HashSet<SideEffectApiCallback> unmountListeners = [];
     public readonly HashSet<SideEffectApiCallback> disposeListeners = [];
@@ -38,7 +38,7 @@ public abstract partial class CapsuleConsumer : Component
     {
         this.ClearHandles(); // listeners will be repopulated via ComponentHandle
 
-        var container = containerParameter.Value;
+        var container = containerParameter.Value.Container;
         Debug.Assert(
             container != null,
             "No CapsuleContainerProvider found in the component tree!\n" +
