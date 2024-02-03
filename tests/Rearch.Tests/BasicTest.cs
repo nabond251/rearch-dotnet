@@ -18,7 +18,7 @@ public class BasicTest
         int Count(ICapsuleHandle x) => 0;
         int CountPlusOne(ICapsuleHandle use) => use.Invoke(Count) + 1;
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
         Assert.Equal(0, container.Read(Count));
         Assert.Equal(1, container.Read(CountPlusOne));
     }
@@ -31,16 +31,16 @@ public class BasicTest
     {
         static (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
 
-        static void Command1(Container container)
+        static void Command1(CapsuleContainer container)
         {
             var (state, setState) = container.Read(Stateful);
             Assert.Equal(0, state);
             setState(1);
         }
 
-        static void Query1Command23(Container container)
+        static void Query1Command23(CapsuleContainer container)
         {
             var (state, setState) = container.Read(Stateful);
             Assert.Equal(1, state);
@@ -48,7 +48,7 @@ public class BasicTest
             setState(3);
         }
 
-        static void Query3(Container container)
+        static void Query3(CapsuleContainer container)
         {
             var (state, _) = container.Read(Stateful);
             Assert.Equal(3, state);
@@ -68,9 +68,9 @@ public class BasicTest
         (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
         int PlusOne(ICapsuleHandle use) => use.Invoke(Stateful).Item1 + 1;
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
 
-        void Command(Container container)
+        void Command(CapsuleContainer container)
         {
             var (state, setState) = container.Read(Stateful);
             var statefulPlusOne = container.Read(PlusOne);
@@ -79,7 +79,7 @@ public class BasicTest
             setState(1);
         }
 
-        void Query(Container container)
+        void Query(CapsuleContainer container)
         {
             var (state, _) = container.Read(Stateful);
             var statefulPlusOne = container.Read(PlusOne);
@@ -103,9 +103,9 @@ public class BasicTest
             return (use.State(0), use.State(1));
         }
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
 
-        static void Command(Container container)
+        static void Command(CapsuleContainer container)
         {
             var ((s1, set1), (s2, set2)) = container.Read(Multi);
             Assert.Equal(0, s1);
@@ -114,7 +114,7 @@ public class BasicTest
             set2(2);
         }
 
-        static void Query(Container container)
+        static void Query(CapsuleContainer container)
         {
             var ((s1, _), (s2, _)) = container.Read(Multi);
             Assert.Equal(1, s1);
@@ -133,7 +133,7 @@ public class BasicTest
     {
         (int, Action<int>) Stateful(ICapsuleHandle use) => use.State(0);
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
         void SetState(int state) => container.Read(Stateful).Item2(state);
 
         List<int> states = [];
@@ -178,7 +178,7 @@ public class BasicTest
         Capsule<double> genericDouble1 = Generic<double>;
         Capsule<double> genericDouble2 = Generic<double>;
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
 
         value = 0;
         container.Read(Generic<int>);
@@ -281,7 +281,7 @@ public class BasicTest
             return new object();
         }
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
 
         Assert.Equal(0, container.Read(UnchangingWatcher));
         Assert.Equal(0, container.Read(ChangingWatcher));
@@ -470,7 +470,7 @@ public class BasicTest
             return use.Invoke(C) + use.Invoke(F);
         }
 
-        using var container = new Container();
+        using var container = new CapsuleContainer();
         Assert.Empty(builds);
 
         Assert.Equal(1, container.Read(D));

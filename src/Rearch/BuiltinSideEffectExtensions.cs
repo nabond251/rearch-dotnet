@@ -2,6 +2,9 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
+using System.Diagnostics.Metrics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace Rearch;
 
 /// <summary>
@@ -37,10 +40,33 @@ public static class BuiltinSideEffectExtensions
     /// <param name="registrar">Side effect registrar.</param>
     /// <param name="callback">Callback to be called once.</param>
     /// <returns><paramref name="callback"/> result.</returns>
-    public static T Callonce<T>(
+    public static T InvokeOnce<T>(
         this ISideEffectRegistrar registrar,
         Func<T> callback) =>
         registrar.Register((_) => callback());
+
+    /// <summary>
+    /// Returns a raw value wrapper; i.e., a getter and setter for some value.
+    /// <i>The setter will not trigger rebuilds</i>.
+    /// The initial state will be set to the result of running
+    /// <paramref name="init"/>, if it was provided. Otherwise, you must
+    /// manually set it via the setter before ever calling the getter.
+    /// </summary>
+    public static (Func<T>, Action<T>) RawValueWrapper<T>(
+        this ISideEffectRegistrar registrar,
+        Func<T>? init = null)
+    {
+        return registrar.Register<(Func<T>, Action<T>)>(api =>
+        {
+            T state = default!;
+            if (init != null)
+            {
+                state = init();
+            }
+
+            return (() => state, (T newState) => state = newState);
+        });
+    }
 
     /// <summary>
     /// Side effect that provides a way for capsules to contain some state,
@@ -56,6 +82,8 @@ public static class BuiltinSideEffectExtensions
         this ISideEffectRegistrar registrar,
         Func<T> init)
     {
+        // We use register directly to keep the same setter function
+        // across rebuilds, which actually can help skip certain rebuilds
         var (getter, setter) = registrar.Register<(Func<T>, Action<T>)>(api =>
         {
             var state = init();
@@ -100,7 +128,7 @@ public static class BuiltinSideEffectExtensions
     public static T LazyValue<T>(
         this ISideEffectRegistrar registrar,
         Func<T> init) =>
-        registrar.Callonce(init);
+        registrar.InvokeOnce(init);
 
     /// <summary>
     /// Side effect that provides a way for capsules to hold onto some value
@@ -118,6 +146,21 @@ public static class BuiltinSideEffectExtensions
         registrar.LazyValue(() => initial);
 
     /// <summary>
+    /// Returns the previous value passed into
+    /// <see cref="Previous{T}(ISideEffectRegistrar, T)"/>, or <c>null</c> on
+    /// first build.
+    /// </summary>
+    public static T? Previous<T>(
+        this ISideEffectRegistrar registrar,
+        T current)
+    {
+        var (getter, setter) = registrar.RawValueWrapper<T?>(() => default);
+        var prev = getter();
+        setter(current);
+        return prev;
+    }
+
+    /// <summary>
     /// Equivalent to the `useMemo` hook from React.
     /// See https://react.dev/reference/react/useMemo.
     /// </summary>
@@ -131,8 +174,29 @@ public static class BuiltinSideEffectExtensions
         Func<T> memo,
         IList<object?>? dependencies = null)
     {
-        throw new NotImplementedException();
+        var oldDependencies = registrar.Previous(dependencies);
+        var (getData, setData) = registrar.RawValueWrapper<T>();
+        if (DidDepsListChange(dependencies, oldDependencies))
+        {
+            setData(memo());
+        }
+
+        return getData();
     }
 
     // TODO(nabond251): other side effects
+
+    /// <summary>
+    /// Checks to see whether <paramref name="newDeps"/> has changed from
+    /// <paramref name="oldDeps"/> using a deep-ish equality check (compares
+    /// <c>==</c> amongst <see cref="IList{T}"/> children).
+    /// </summary>
+    private static bool DidDepsListChange(
+        IList<object?> newDeps,
+        IList<object?>? oldDeps)
+    {
+        return
+            oldDeps == null ||
+            !newDeps.SequenceEqual(oldDeps);
+    }
 }

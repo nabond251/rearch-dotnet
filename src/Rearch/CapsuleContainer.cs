@@ -20,14 +20,14 @@ public delegate T Capsule<out T>(ICapsuleHandle handle);
 /// to a set of <see cref="Capsule{T}"/>s.
 /// </summary>
 /// <param name="capsuleReader">Capsule reader.</param>
-/// <seealso cref="Container.Listen(CapsuleListener)"/>
+/// <seealso cref="CapsuleContainer.Listen(CapsuleListener)"/>
 public delegate void CapsuleListener(ICapsuleReader capsuleReader);
 
 /// <summary>
 /// Contains the data of <see cref="Capsule{T}"/>s.
 /// See the documentation for more.
 /// </summary>
-public class Container : IDisposable
+public class CapsuleContainer : IDisposable
 {
     private readonly Dictionary<
         object,

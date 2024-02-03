@@ -17,6 +17,8 @@ public delegate void ComponentSideEffectApiCallback();
 /// </summary>
 public interface IComponentSideEffectApi : ISideEffectApi
 {
+    CapsuleConsumer Context { get; }
+
     /// <summary>
     /// Adds an unmount lifecycle listener.
     /// </summary>

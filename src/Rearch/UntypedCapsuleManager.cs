@@ -7,14 +7,14 @@ namespace Rearch;
 /// <summary>
 /// Base untyped dataflow node that manages capsule data and effects.
 /// </summary>
-internal abstract class UntypedCapsuleManager(Container container) :
+internal abstract class UntypedCapsuleManager(CapsuleContainer container) :
     DataflowGraphNode,
     ISideEffectApi
 {
     /// <summary>
     /// Gets container containing capsule's data.
     /// </summary>
-    public Container Container { get; } = container;
+    public CapsuleContainer Container { get; } = container;
 
     /// <summary>
     /// Gets or sets a value indicating whether encapsulated data has been built.

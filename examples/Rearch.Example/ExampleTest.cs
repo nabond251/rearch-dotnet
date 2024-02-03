@@ -15,7 +15,7 @@ public class ExampleTest
     [Fact]
     public void MainFunctionRunsCorrectly()
     {
-        using var container = new Container();
+        using var container = new CapsuleContainer();
 
         Assert.True(
             container.Read(Count) == 0,

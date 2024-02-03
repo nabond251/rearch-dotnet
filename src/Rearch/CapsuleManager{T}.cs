@@ -15,7 +15,7 @@ internal sealed class CapsuleManager<T> : UntypedCapsuleManager
     /// </summary>
     /// <param name="container">Capsule data container.</param>
     /// <param name="capsule">Capsule whose data and effects to manage.</param>
-    public CapsuleManager(Container container, Capsule<T> capsule)
+    public CapsuleManager(CapsuleContainer container, Capsule<T> capsule)
         : base(container)
     {
         this.Capsule = capsule;
