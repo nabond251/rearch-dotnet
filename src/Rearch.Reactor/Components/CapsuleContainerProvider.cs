@@ -20,35 +20,21 @@ public class CapsuleContainerParameter()
 /// <see cref="CapsuleContainer"/>. You typically should use
 /// <see cref="RearchBootstrapper"/> instead.
 /// </summary>
-public partial class CapsuleContainerProvider : Component
+public partial class CapsuleContainerProvider<TComponent> : Component
+    where TComponent : CapsuleConsumer, new()
 {
     [Param]
     IParameter<CapsuleContainerParameter> containerParameter;
-
-    public CapsuleContainerProvider(CapsuleContainer container, Component child)
-    {
-        this.Container = container;
-        this.Child = child;
-    }
-
-    /// <summary>
-    /// Gets the <see cref="CapsuleContainer"/> this
-    /// <see cref="CapsuleContainerProvider"/> is providing to the rest of the
-    /// <see cref="Component"/> tree.
-    /// </summary>
-    public CapsuleContainer Container { get; }
-
-    public Component Child { get; }
 
     protected override void OnMounted()
     {
         base.OnMounted();
 
-        containerParameter.Set(_ => _.Container = this.Container);
+        containerParameter.Set(p => p.Container = new CapsuleContainer());
     }
 
     public override VisualNode Render()
     {
-        return this.Child;
+        return new TComponent();
     }
 }

@@ -5,9 +5,9 @@ using ReactorData.Sqlite;
 using System;
 using System.IO;
 using System.Reflection.Metadata;
+using Rearch.Reactor.Components;
 using Rearch.Reactor.Example.Models;
 using Rearch.Reactor.Example.Pages;
-
 
 namespace Rearch.Reactor.Example;
 
@@ -24,7 +24,7 @@ public static class MauiProgram
 
         var builder = MauiApp.CreateBuilder();
         builder
-            .UseMauiReactorApp<MainPage>(app =>
+            .UseRearchReactorApp<MainPage>(app =>
             {
                 //app.AddResource("Resources/Styles/Colors.xaml");
                 //app.AddResource("Resources/Styles/Styles.xaml");
