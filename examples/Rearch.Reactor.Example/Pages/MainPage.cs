@@ -6,46 +6,73 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Rearch.Reactor.Example.Models;
+using Rearch.Reactor.Components;
 
 namespace Rearch.Reactor.Example.Pages;
 
-class MainPageState
-{
-    public IQuery<Todo> TodoItems { get; set; } = default!;
-}
-
-partial class MainPage : Component<MainPageState>
+partial class MainPage : CapsuleConsumer
 {
     [Inject]
     IModelContext _modelContext;
 
-    protected override void OnMounted()
-    {
-        State.TodoItems = _modelContext.Query<Todo>(query => query.OrderBy(_ => _.Task));
+    private IQuery<Todo> TodoQueryCapsule(ICapsuleHandle use) =>
+        _modelContext.Query<Todo>(query => query.OrderBy(_ => _.Task));
 
-        base.OnMounted();
+    private (
+        Action<Todo> AddTodo,
+        Action<Todo> UpdateTodo,
+        Action<IEnumerable<Todo>> DeleteTodos)
+        TodoItemsManagerCapsule(ICapsuleHandle use) =>
+        (
+            AddTodo: todo =>
+            {
+                _modelContext.Add(todo);
+                _modelContext.Save();
+            },
+            UpdateTodo: todo =>
+            {
+                _modelContext.Update(todo);
+                _modelContext.Save();
+            },
+            DeleteTodos: todos =>
+            {
+                _modelContext.DeleteRange(todos);
+                _modelContext.Save();
+            });
+
+    private IQuery<Todo> TodoItemsCapsule(ICapsuleHandle use)
+    {
+        var query = use.Invoke(TodoQueryCapsule);
+
+        var todos = use.Memo(() => query, [query]);
+
+        return todos;
     }
 
-    public override VisualNode Render()
-        => ContentPage(
+    public override VisualNode Render(IComponentHandle use)
+    {
+        var todoItems = use.Invoke(TodoItemsCapsule);
+
+        return ContentPage(
             Grid("Auto, *, Auto", "*",
-                TodoEditor(OnCreatedNewTask),
+                TodoEditor(i => OnCreatedNewTask(i, use)),
 
                 CollectionView()
-                    .ItemsSource(State.TodoItems, RenderItem)
+                    .ItemsSource(todoItems, i => RenderItem(i, use))
                     .GridRow(1),
 
                 Button("Clear List")
-                    .OnClicked(OnClearList)
+                    .OnClicked(() => OnClearList(use))
                     .GridRow(2)
 
-            ));    
+            ));
+    }
 
-    VisualNode RenderItem(Todo item)
+    VisualNode RenderItem(Todo item, IComponentHandle use)
         => Grid("54", "Auto, *",
             CheckBox()
                 .IsChecked(item.Done)
-                .OnCheckedChanged((s, args) => OnItemDoneChanged(item, args.Value)),
+                .OnCheckedChanged((s, args) => OnItemDoneChanged(item, args.Value, use)),
             Label(item.Task)
                 .TextDecorations(item.Done ? TextDecorations.Strikethrough : TextDecorations.None)
                 .VCenter()
@@ -67,23 +94,28 @@ partial class MainPage : Component<MainPageState>
                 )
             );
 
-    void OnItemDoneChanged(Todo item, bool done)
+    void OnItemDoneChanged(Todo item, bool done, IComponentHandle use)
     {
+        var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
+
         item.Done = done;
 
-        _modelContext.Update(item);
-        _modelContext.Save();
+        UpdateTodo(item);
     }
 
-    void OnCreatedNewTask(Todo todo)
+    void OnCreatedNewTask(Todo todo, IComponentHandle use)
     {
-        _modelContext.Add(todo);
-        _modelContext.Save();
+        var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
+
+        AddTodo(todo);
     }
 
-    void OnClearList()
+    void OnClearList(IComponentHandle use)
     {
-        _modelContext.DeleteRange(State.TodoItems);
-        _modelContext.Save();
+        var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
+
+        var todoItems = use.Invoke(TodoItemsCapsule);
+
+        DeleteTodos(todoItems);
     }
 }

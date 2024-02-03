@@ -117,5 +117,22 @@ public static class BuiltinSideEffectExtensions
         T initial) =>
         registrar.LazyValue(() => initial);
 
+    /// <summary>
+    /// Equivalent to the `useMemo` hook from React.
+    /// See https://react.dev/reference/react/useMemo.
+    /// </summary>
+    /// <typeparam name="T">Type of side effect value.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="memo">Memoization function to obtain value.</param>
+    /// <param name="dependencies">Dependencies to trigger update.</param>
+    /// <returns>Memoized value.</returns>
+    public static T Memo<T>(
+        this ISideEffectRegistrar registrar,
+        Func<T> memo,
+        IList<object?>? dependencies = null)
+    {
+        throw new NotImplementedException();
+    }
+
     // TODO(nabond251): other side effects
 }
