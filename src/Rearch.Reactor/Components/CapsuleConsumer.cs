@@ -122,14 +122,14 @@ internal class ComponentHandle(
             // If this isn't the immediate call after registering, rebuild
             if (hasCalledBefore)
             {
-                api.Rebuild();
+                Api.Rebuild();
             }
 
             hasCalledBefore = true;
         });
-        api.Manager.listenerHandles.Add(handle);
+        Api.Manager.listenerHandles.Add(handle);
 
-        return container.Read(capsule);
+        return Container.Read(capsule);
     }
 
     /// <inheritdoc/>
@@ -143,11 +143,11 @@ internal class ComponentHandle(
     private T RegisterInternal<T>(
         Func<IComponentSideEffectApi, object?> sideEffect)
     {
-        if (this.sideEffectDataIndex == api.Manager.sideEffectData.Count)
+        if (this.sideEffectDataIndex == Api.Manager.sideEffectData.Count)
         {
-            api.Manager.sideEffectData.Add(sideEffect(api));
+            Api.Manager.sideEffectData.Add(sideEffect(Api));
         }
 
-        return (T)api.Manager.sideEffectData[this.sideEffectDataIndex++]!;
+        return (T)Api.Manager.sideEffectData[this.sideEffectDataIndex++]!;
     }
 }
