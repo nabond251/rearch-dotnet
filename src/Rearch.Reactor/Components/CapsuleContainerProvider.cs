@@ -7,40 +7,37 @@ namespace Rearch.Reactor.Components;
 using MauiReactor;
 using MauiReactor.Parameters;
 
-public class CapsuleContainerParameter()
-{
-    public CapsuleContainer Container { get; set; }
-}
-
 /// <summary>
 /// Provides a <see cref="CapsuleContainer"/> to the rest of the
 /// <see cref="Component"/> tree using an <see cref="IParameter"/>.
-///
+/// <br/>
+/// <br/>
 /// Does not manage the lifecycle of the supplied
-/// <see cref="CapsuleContainer"/>. You typically should use
-/// <see cref="RearchBootstrapper"/> instead.
+/// <see cref="CapsuleContainer"/>. You typically should
+/// <see cref="MauiAppBuilderExtensions.UseRearchReactorApp{TComponent}(MauiAppBuilder, Action{MauiReactor.ReactorApplication}?)"/>
+/// instead.
 /// </summary>
 public partial class CapsuleContainerProvider<TComponent> : Component
     where TComponent : CapsuleConsumer, new()
 {
     [Param]
-    IParameter<CapsuleContainerParameter> containerParameter;
-
-    protected override void OnMounted()
-    {
-        base.OnMounted();
-
-        containerParameter.Set(p => p.Container = new CapsuleContainer());
-    }
+    private readonly IParameter<CapsuleContainerParameter> containerParameter;
 
     public override VisualNode Render()
     {
         return new TComponent();
     }
 
+    protected override void OnMounted()
+    {
+        base.OnMounted();
+
+        this.containerParameter.Set(p => p.Container = new CapsuleContainer());
+    }
+
     protected override void OnWillUnmount()
     {
         base.OnWillUnmount();
-        this.containerParameter.Value.Container.Dispose();
+        this.containerParameter.Value.Container?.Dispose();
     }
 }

@@ -49,7 +49,7 @@ public static class BuiltinSideEffectExtensions
     /// <paramref name="init"/>, if it was provided. Otherwise, you must
     /// manually set it via the setter before ever calling the getter.
     /// </summary>
-    public static (Func<T>, Action<T>) RawValueWrapper<T>(
+    public static (Func<T> Getter, Action<T> Setter) RawValueWrapper<T>(
         this ISideEffectRegistrar registrar,
         Func<T>? init = null)
     {
@@ -171,9 +171,10 @@ public static class BuiltinSideEffectExtensions
         Func<T> memo,
         IList<object?>? dependencies = null)
     {
-        var oldDependencies = registrar.Previous(dependencies);
+        var deps = dependencies ?? [];
+        var oldDependencies = registrar.Previous(deps);
         var (getData, setData) = registrar.RawValueWrapper<T>();
-        if (DidDepsListChange(dependencies, oldDependencies))
+        if (DidDepsListChange(deps, oldDependencies))
         {
             setData(memo());
         }

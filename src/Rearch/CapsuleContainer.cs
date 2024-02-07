@@ -1,4 +1,4 @@
-// <copyright file="Container.cs" company="SdgApps">
+// <copyright file="CapsuleContainer.cs" company="SdgApps">
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 

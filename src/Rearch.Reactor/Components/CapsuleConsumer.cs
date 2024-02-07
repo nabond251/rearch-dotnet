@@ -16,20 +16,22 @@ using MauiReactor.Parameters;
 public abstract partial class CapsuleConsumer : Component
 {
     [Param]
-    IParameter<CapsuleContainerParameter> containerParameter;
+    private readonly IParameter<CapsuleContainerParameter> containerParameter;
 
-    public readonly HashSet<SideEffectApiCallback> unmountListeners = [];
-    public readonly List<object?> sideEffectData = [];
-    public readonly List<ListenerHandle> listenerHandles = [];
+    internal HashSet<SideEffectApiCallback> UnmountListeners { get; } = [];
+
+    internal List<object?> SideEffectData { get; } = [];
+
+    internal List<ListenerHandle> ListenerHandles { get; } = [];
 
     public void ClearHandles()
     {
-        foreach (var handle in this.listenerHandles)
+        foreach (var handle in this.ListenerHandles)
         {
             handle.Dispose();
         }
 
-        this.listenerHandles.Clear();
+        this.ListenerHandles.Clear();
     }
 
     /// <inheritdoc/>
@@ -37,11 +39,10 @@ public abstract partial class CapsuleConsumer : Component
     {
         this.ClearHandles(); // listeners will be repopulated via ComponentHandle
 
-        var container = containerParameter.Value.Container;
+        var container = this.containerParameter.Value.Container;
         Debug.Assert(
             container != null,
-            "No CapsuleContainerProvider found in the component tree!\n" +
-            "Did you forget to add UseRearchReactorApp to MauiProgram?");
+            "No CapsuleContainerProvider found in the component tree!\nDid you forget to add UseRearchReactorApp to MauiProgram?");
 
         return this.Render(
           new ComponentHandle(
@@ -57,9 +58,12 @@ public abstract partial class CapsuleConsumer : Component
     /// <returns>Rendered node.</returns>
     public abstract VisualNode Render(IComponentHandle use);
 
+    internal new void Invalidate() => base.Invalidate();
+
+    /// <inheritdoc/>
     protected override void OnWillUnmount()
     {
-        foreach (var listener in this.unmountListeners)
+        foreach (var listener in this.UnmountListeners)
         {
             listener();
         }
@@ -67,87 +71,8 @@ public abstract partial class CapsuleConsumer : Component
         this.ClearHandles();
 
         // Clean up after any side effects to avoid possible leaks
-        this.unmountListeners.Clear();
+        this.UnmountListeners.Clear();
 
         base.OnWillUnmount();
-    }
-
-    internal new void Invalidate() => base.Invalidate();
-}
-
-/// <summary>
-/// This is needed so that <see cref="ISideEffectApi.Rebuild"/> doesn't
-/// conflict with <see cref="Component.Render()"/>.
-/// </summary>
-internal sealed class ComponentSideEffectApi(CapsuleConsumer manager) : IComponentSideEffectApi
-{
-    public CapsuleConsumer Manager { get; } = manager;
-
-    public CapsuleConsumer Context => this.Manager;
-
-    public void Rebuild() => this.Manager.Invalidate();
-
-    public void AddUnmountListener(SideEffectApiCallback callback) =>
-      this.Manager.unmountListeners.Add(callback);
-
-    public void RemoveUnmountListener(SideEffectApiCallback callback) =>
-        this.Manager.unmountListeners.Remove(callback);
-
-    public void RegisterDispose(SideEffectApiCallback callback) =>
-        this.Manager.unmountListeners.Add(callback);
-
-    public void UnregisterDispose(SideEffectApiCallback callback) =>
-        this.Manager.unmountListeners.Remove(callback);
-}
-
-internal class ComponentHandle(
-    ComponentSideEffectApi api,
-    CapsuleContainer container) : IComponentHandle
-{
-    int sideEffectDataIndex = 0;
-
-    public ComponentSideEffectApi Api { get; } = api;
-
-    public CapsuleContainer Container { get; } = container;
-
-    /// <inheritdoc/>
-    public T Invoke<T>(Capsule<T> capsule)
-    {
-        // Add capsule as dependency
-        var hasCalledBefore = false;
-        var handle = this.Container.Listen(use =>
-        {
-            use.Invoke(capsule); // mark capsule as a dependency
-
-            // If this isn't the immediate call after registering, rebuild
-            if (hasCalledBefore)
-            {
-                Api.Rebuild();
-            }
-
-            hasCalledBefore = true;
-        });
-        Api.Manager.listenerHandles.Add(handle);
-
-        return Container.Read(capsule);
-    }
-
-    /// <inheritdoc/>
-    public T Register<T>(SideEffect<T> sideEffect) =>
-        this.RegisterInternal<T>(api => sideEffect(api));
-
-    /// <inheritdoc/>
-    public T Register<T>(ComponentSideEffect<T> sideEffect) =>
-        this.RegisterInternal<T>(api => sideEffect(api));
-
-    private T RegisterInternal<T>(
-        Func<IComponentSideEffectApi, object?> sideEffect)
-    {
-        if (this.sideEffectDataIndex == Api.Manager.sideEffectData.Count)
-        {
-            Api.Manager.sideEffectData.Add(sideEffect(Api));
-        }
-
-        return (T)Api.Manager.sideEffectData[this.sideEffectDataIndex++]!;
     }
 }
