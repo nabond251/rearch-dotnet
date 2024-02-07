@@ -23,11 +23,13 @@ public partial class CapsuleContainerProvider<TComponent> : Component
     [Param]
     private readonly IParameter<CapsuleContainerParameter> containerParameter;
 
+    /// <inheritdoc/>
     public override VisualNode Render()
     {
         return new TComponent();
     }
 
+    /// <inheritdoc/>
     protected override void OnMounted()
     {
         base.OnMounted();
@@ -35,6 +37,7 @@ public partial class CapsuleContainerProvider<TComponent> : Component
         this.containerParameter.Set(p => p.Container = new CapsuleContainer());
     }
 
+    /// <inheritdoc/>
     protected override void OnWillUnmount()
     {
         base.OnWillUnmount();

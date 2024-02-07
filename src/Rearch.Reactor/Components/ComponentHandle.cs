@@ -6,52 +6,40 @@ namespace Rearch.Reactor.Components;
 
 internal class ComponentHandle(
     ComponentSideEffectApi api,
-    CapsuleContainer container) : IComponentHandle
+    CapsuleContainer container) : ICapsuleHandle
 {
     private int sideEffectDataIndex = 0;
-
-    public ComponentSideEffectApi Api { get; } = api;
-
-    public CapsuleContainer Container { get; } = container;
 
     /// <inheritdoc/>
     public T Invoke<T>(Capsule<T> capsule)
     {
         // Add capsule as dependency
         var hasCalledBefore = false;
-        var handle = this.Container.Listen(use =>
+        var handle = container.Listen(use =>
         {
             use.Invoke(capsule); // mark capsule as a dependency
 
             // If this isn't the immediate call after registering, rebuild
             if (hasCalledBefore)
             {
-                this.Api.Rebuild();
+                api.Rebuild();
             }
 
             hasCalledBefore = true;
         });
-        this.Api.Manager.ListenerHandles.Add(handle);
+        api.Manager.ListenerHandles.Add(handle);
 
-        return this.Container.Read(capsule);
+        return container.Read(capsule);
     }
 
     /// <inheritdoc/>
-    public T Register<T>(SideEffect<T> sideEffect) =>
-        this.RegisterInternal<T>(api => sideEffect(api));
-
-    /// <inheritdoc/>
-    public T Register<T>(ComponentSideEffect<T> sideEffect) =>
-        this.RegisterInternal<T>(api => sideEffect(api));
-
-    private T RegisterInternal<T>(
-        Func<IComponentSideEffectApi, object?> sideEffect)
+    public T Register<T>(SideEffect<T> sideEffect)
     {
-        if (this.sideEffectDataIndex == this.Api.Manager.SideEffectData.Count)
+        if (this.sideEffectDataIndex == api.Manager.SideEffectData.Count)
         {
-            this.Api.Manager.SideEffectData.Add(sideEffect(this.Api));
+            api.Manager.SideEffectData.Add(sideEffect(api));
         }
 
-        return (T)this.Api.Manager.SideEffectData[this.sideEffectDataIndex++]!;
+        return (T)api.Manager.SideEffectData[this.sideEffectDataIndex++]!;
     }
 }

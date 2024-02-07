@@ -10,7 +10,7 @@ using MauiReactor.Parameters;
 
 /// <summary>
 /// A <see cref="Component"/> that has access to a
-/// <see cref="IComponentHandle"/>, and can consequently consume
+/// <see cref="ICapsuleHandle"/>, and can consequently consume
 /// <see cref="Capsule{T}"/>s and <see cref="SideEffect{T}"/>s.
 /// </summary>
 public abstract partial class CapsuleConsumer : Component
@@ -23,16 +23,6 @@ public abstract partial class CapsuleConsumer : Component
     internal List<object?> SideEffectData { get; } = [];
 
     internal List<ListenerHandle> ListenerHandles { get; } = [];
-
-    public void ClearHandles()
-    {
-        foreach (var handle in this.ListenerHandles)
-        {
-            handle.Dispose();
-        }
-
-        this.ListenerHandles.Clear();
-    }
 
     /// <inheritdoc/>
     public sealed override VisualNode Render()
@@ -56,7 +46,7 @@ public abstract partial class CapsuleConsumer : Component
     /// </summary>
     /// <param name="use">Component handle.</param>
     /// <returns>Rendered node.</returns>
-    public abstract VisualNode Render(IComponentHandle use);
+    public abstract VisualNode Render(ICapsuleHandle use);
 
     internal new void Invalidate() => base.Invalidate();
 
@@ -74,5 +64,15 @@ public abstract partial class CapsuleConsumer : Component
         this.UnmountListeners.Clear();
 
         base.OnWillUnmount();
+    }
+
+    private void ClearHandles()
+    {
+        foreach (var handle in this.ListenerHandles)
+        {
+            handle.Dispose();
+        }
+
+        this.ListenerHandles.Clear();
     }
 }

@@ -49,7 +49,7 @@ partial class MainPage : CapsuleConsumer
         return todos;
     }
 
-    public override VisualNode Render(IComponentHandle use)
+    public override VisualNode Render(ICapsuleHandle use)
     {
         var todoItems = use.Invoke(TodoItemsCapsule);
 
@@ -68,7 +68,7 @@ partial class MainPage : CapsuleConsumer
             ));
     }
 
-    VisualNode RenderItem(Todo item, IComponentHandle use)
+    VisualNode RenderItem(Todo item, ICapsuleHandle use)
         => Grid("54", "Auto, *",
             CheckBox()
                 .IsChecked(item.Done)
@@ -94,7 +94,7 @@ partial class MainPage : CapsuleConsumer
                 )
             );
 
-    void OnItemDoneChanged(Todo item, bool done, IComponentHandle use)
+    void OnItemDoneChanged(Todo item, bool done, ICapsuleHandle use)
     {
         var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
 
@@ -103,14 +103,14 @@ partial class MainPage : CapsuleConsumer
         UpdateTodo(item);
     }
 
-    void OnCreatedNewTask(Todo todo, IComponentHandle use)
+    void OnCreatedNewTask(Todo todo, ICapsuleHandle use)
     {
         var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
 
         AddTodo(todo);
     }
 
-    void OnClearList(IComponentHandle use)
+    void OnClearList(ICapsuleHandle use)
     {
         var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
 
