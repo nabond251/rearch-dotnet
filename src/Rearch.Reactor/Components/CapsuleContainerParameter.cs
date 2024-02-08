@@ -4,7 +4,15 @@
 
 namespace Rearch.Reactor.Components;
 
+/// <summary>
+/// <see cref="CapsuleContainer"/> parameter.
+/// </summary>
 internal class CapsuleContainerParameter()
 {
+    /// <summary>
+    /// Gets or sets container provided by
+    /// <see cref="CapsuleContainerProvider{TComponent}"/> and used by
+    /// <see cref="CapsuleConsumer"/>.
+    /// </summary>
     internal CapsuleContainer? Container { get; set; }
 }

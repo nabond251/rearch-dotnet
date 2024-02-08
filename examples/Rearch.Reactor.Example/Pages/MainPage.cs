@@ -13,7 +13,7 @@ namespace Rearch.Reactor.Example.Pages;
 partial class MainPage : CapsuleConsumer
 {
     [Inject]
-    IModelContext _modelContext;
+    readonly IModelContext _modelContext;
 
     private IQuery<Todo> TodoQueryCapsule(ICapsuleHandle use) =>
         _modelContext.Query<Todo>(query => query.OrderBy(_ => _.Task));
@@ -68,7 +68,7 @@ partial class MainPage : CapsuleConsumer
             ));
     }
 
-    VisualNode RenderItem(Todo item, ICapsuleHandle use)
+    Grid RenderItem(Todo item, ICapsuleHandle use)
         => Grid("54", "Auto, *",
             CheckBox()
                 .IsChecked(item.Done)

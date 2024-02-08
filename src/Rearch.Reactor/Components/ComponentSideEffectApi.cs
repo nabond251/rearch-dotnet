@@ -12,6 +12,9 @@ using MauiReactor;
 /// </summary>
 internal sealed class ComponentSideEffectApi(CapsuleConsumer manager) : ISideEffectApi
 {
+    /// <summary>
+    /// Gets component consuming capsule's data.
+    /// </summary>
     internal CapsuleConsumer Manager { get; } = manager;
 
     /// <inheritdoc/>

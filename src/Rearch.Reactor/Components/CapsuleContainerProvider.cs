@@ -17,6 +17,7 @@ using MauiReactor.Parameters;
 /// <see cref="MauiAppBuilderExtensions.UseRearchReactorApp{TComponent}(MauiAppBuilder, Action{MauiReactor.ReactorApplication}?)"/>
 /// instead.
 /// </summary>
+/// <typeparam name="TComponent">Type of root component.</typeparam>
 internal partial class CapsuleContainerProvider<TComponent> : Component
     where TComponent : CapsuleConsumer, new()
 {

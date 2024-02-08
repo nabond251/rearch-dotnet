@@ -12,11 +12,6 @@ internal abstract class UntypedCapsuleManager(CapsuleContainer container) :
     ISideEffectApi
 {
     /// <summary>
-    /// Gets container containing capsule's data.
-    /// </summary>
-    protected CapsuleContainer Container { get; } = container;
-
-    /// <summary>
     /// Gets or sets a value indicating whether encapsulated data has been built.
     /// </summary>
     internal bool HasBuilt { get; set; }
@@ -31,8 +26,24 @@ internal abstract class UntypedCapsuleManager(CapsuleContainer container) :
     /// </summary>
     internal HashSet<SideEffectApiCallback> ToDispose { get; } = [];
 
+    /// <summary>
+    /// Gets container containing capsule's data.
+    /// </summary>
+    protected CapsuleContainer Container { get; } = container;
+
     /// <inheritdoc/>
     protected override bool IsSuperPure => this.SideEffectData.Count == 0;
+
+    /// <inheritdoc/>
+    public void Rebuild() => this.BuildSelfAndDependents();
+
+    /// <inheritdoc/>
+    public void RegisterDispose(SideEffectApiCallback callback) =>
+        this.ToDispose.Add(callback);
+
+    /// <inheritdoc/>
+    public void UnregisterDispose(SideEffectApiCallback callback) =>
+        this.ToDispose.Remove(callback);
 
     /// <summary>
     /// Reads data from capsule other than the one this manages.
@@ -46,15 +57,4 @@ internal abstract class UntypedCapsuleManager(CapsuleContainer container) :
         this.AddDependency(otherManager);
         return otherManager.Data;
     }
-
-    /// <inheritdoc/>
-    public void Rebuild() => this.BuildSelfAndDependents();
-
-    /// <inheritdoc/>
-    public void RegisterDispose(SideEffectApiCallback callback) =>
-        this.ToDispose.Add(callback);
-
-    /// <inheritdoc/>
-    public void UnregisterDispose(SideEffectApiCallback callback) =>
-        this.ToDispose.Remove(callback);
 }

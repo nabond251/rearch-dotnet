@@ -18,10 +18,19 @@ public abstract partial class CapsuleConsumer : Component
     [Param]
     private readonly IParameter<CapsuleContainerParameter> containerParameter;
 
+    /// <summary>
+    /// Gets set of callbacks to execute <see cref="Component.OnWillUnmount"/>.
+    /// </summary>
     internal HashSet<SideEffectApiCallback> UnmountListeners { get; } = [];
 
+    /// <summary>
+    /// Gets data of registered side effects.
+    /// </summary>
     internal List<object?> SideEffectData { get; } = [];
 
+    /// <summary>
+    /// Gets listener handles to dispose.
+    /// </summary>
     internal List<ListenerHandle> ListenerHandles { get; } = [];
 
     /// <inheritdoc/>
@@ -48,6 +57,9 @@ public abstract partial class CapsuleConsumer : Component
     /// <returns>Rendered node.</returns>
     public abstract VisualNode Render(ICapsuleHandle use);
 
+    /// <summary>
+    /// Invalidates component, triggering re-render.
+    /// </summary>
     internal new void Invalidate() => base.Invalidate();
 
     /// <inheritdoc/>

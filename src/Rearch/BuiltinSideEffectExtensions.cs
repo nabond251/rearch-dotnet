@@ -49,6 +49,12 @@ public static class BuiltinSideEffectExtensions
     /// <paramref name="init"/>, if it was provided. Otherwise, you must
     /// manually set it via the setter before ever calling the getter.
     /// </summary>
+    /// <typeparam name="T">Type of raw value.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="init">Callback to initialize side effect state.</param>
+    /// <returns>
+    /// A raw value wrapper; i.e., a getter and setter for some value.
+    /// </returns>
     public static (Func<T> Getter, Action<T> Setter) RawValueWrapper<T>(
         this ISideEffectRegistrar registrar,
         Func<T>? init = null)
@@ -147,6 +153,10 @@ public static class BuiltinSideEffectExtensions
     /// <see cref="Previous{T}(ISideEffectRegistrar, T)"/>, or <c>null</c> on
     /// first build.
     /// </summary>
+    /// <typeparam name="T">Type of side effect value.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="current">The current value.</param>
+    /// <returns>The previous value, or <c>null</c> on first build.</returns>
     public static T? Previous<T>(
         this ISideEffectRegistrar registrar,
         T current)
@@ -186,6 +196,9 @@ public static class BuiltinSideEffectExtensions
     /// Equivalent to the `useEffect` hook from React.
     /// See https://react.dev/reference/react/useEffect.
     /// </summary>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="effect">Effect callback.</param>
+    /// <param name="dependencies">Dependencies to trigger effect.</param>
     public static void Effect(
         this ISideEffectRegistrar registrar,
         Func<Action?> effect,

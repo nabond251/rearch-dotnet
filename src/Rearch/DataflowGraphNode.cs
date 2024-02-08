@@ -17,11 +17,12 @@ internal abstract class DataflowGraphNode : IDisposable
     /// </summary>
     protected abstract bool IsSuperPure { get; }
 
-    /// <summary>
-    /// Updates node data.
-    /// </summary>
-    /// <returns>A value indicating whether the node data changed.</returns>
-    protected abstract bool BuildSelf();
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     /// <summary>
     /// Adds a dependency node in the node network.
@@ -89,12 +90,11 @@ internal abstract class DataflowGraphNode : IDisposable
         }
     }
 
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+    /// <summary>
+    /// Updates node data.
+    /// </summary>
+    /// <returns>A value indicating whether the node data changed.</returns>
+    protected abstract bool BuildSelf();
 
     /// <summary>
     /// Implements the disposable pattern.
