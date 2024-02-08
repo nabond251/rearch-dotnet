@@ -181,7 +181,7 @@ public static class BuiltinSideEffectExtensions
         Func<T> memo,
         IList<object?>? dependencies = null)
     {
-        var deps = dependencies ?? [];
+        var deps = dependencies ?? new List<object?>();
         var oldDependencies = registrar.Previous(deps);
         var (getData, setData) = registrar.RawValueWrapper<T>();
         if (DidDepsListChange(deps, oldDependencies))

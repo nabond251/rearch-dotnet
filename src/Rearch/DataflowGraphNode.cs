@@ -9,8 +9,8 @@ namespace Rearch;
 /// </summary>
 internal abstract class DataflowGraphNode : IDisposable
 {
-    private readonly HashSet<DataflowGraphNode> dependencies = [];
-    private readonly HashSet<DataflowGraphNode> dependents = [];
+    private readonly HashSet<DataflowGraphNode> dependencies = new();
+    private readonly HashSet<DataflowGraphNode> dependents = new();
 
     /// <summary>
     /// Gets a value indicating whether the node is free of side effects.
@@ -62,7 +62,7 @@ internal abstract class DataflowGraphNode : IDisposable
         // (We use skip(1) to avoid building this node twice)
         var buildOrder = this.CreateBuildOrder().Skip(1).ToList();
         var disposableNodes = GetDisposableNodesFromBuildOrder(buildOrder);
-        HashSet<DataflowGraphNode> changedNodes = [this];
+        var changedNodes = new HashSet<DataflowGraphNode> { this };
         foreach (var node in buildOrder)
         {
             var haveDepsChanged = node.dependencies.Any(changedNodes.Contains);
@@ -113,7 +113,7 @@ internal abstract class DataflowGraphNode : IDisposable
     private static HashSet<DataflowGraphNode> GetDisposableNodesFromBuildOrder(
         IList<DataflowGraphNode> buildOrder)
     {
-        HashSet<DataflowGraphNode> disposable = [];
+        HashSet<DataflowGraphNode> disposable = new();
 
         var ds = buildOrder.Reverse().Where(node =>
         {

@@ -7,10 +7,19 @@ namespace Rearch;
 /// <summary>
 /// Base untyped dataflow node that manages capsule data and effects.
 /// </summary>
-internal abstract class UntypedCapsuleManager(CapsuleContainer container) :
+internal abstract class UntypedCapsuleManager :
     DataflowGraphNode,
     ISideEffectApi
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UntypedCapsuleManager"/> class.
+    /// </summary>
+    /// <param name="container">Capsule container.</param>
+    protected UntypedCapsuleManager(CapsuleContainer container)
+    {
+        this.Container = container;
+    }
+
     /// <summary>
     /// Gets or sets a value indicating whether encapsulated data has been built.
     /// </summary>
@@ -19,17 +28,17 @@ internal abstract class UntypedCapsuleManager(CapsuleContainer container) :
     /// <summary>
     /// Gets data of registered side effects.
     /// </summary>
-    internal List<object?> SideEffectData { get; } = [];
+    internal List<object?> SideEffectData { get; } = new();
 
     /// <summary>
     /// Gets set of callbacks to dispose.
     /// </summary>
-    internal HashSet<SideEffectApiCallback> ToDispose { get; } = [];
+    internal HashSet<SideEffectApiCallback> ToDispose { get; } = new();
 
     /// <summary>
     /// Gets container containing capsule's data.
     /// </summary>
-    protected CapsuleContainer Container { get; } = container;
+    protected CapsuleContainer Container { get; }
 
     /// <inheritdoc/>
     protected override bool IsSuperPure => this.SideEffectData.Count == 0;

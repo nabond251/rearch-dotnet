@@ -38,7 +38,7 @@ public class CapsuleContainer : IDisposable
 {
     private readonly Dictionary<
         object,
-        UntypedCapsuleManager> capsules = [];
+        UntypedCapsuleManager> capsules = new();
 
     /// <summary>
     /// Gets map of container to manager.
