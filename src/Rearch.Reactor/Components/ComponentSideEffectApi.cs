@@ -12,7 +12,7 @@ using MauiReactor;
 /// </summary>
 internal sealed class ComponentSideEffectApi(CapsuleConsumer manager) : ISideEffectApi
 {
-    public CapsuleConsumer Manager { get; } = manager;
+    internal CapsuleConsumer Manager { get; } = manager;
 
     /// <inheritdoc/>
     public void Rebuild() => this.Manager.Invalidate();

@@ -8,7 +8,7 @@ internal class ComponentHandle(
     ComponentSideEffectApi api,
     CapsuleContainer container) : ICapsuleHandle
 {
-    private int sideEffectDataIndex = 0;
+    private int sideEffectDataIndex;
 
     /// <inheritdoc/>
     public T Invoke<T>(Capsule<T> capsule)

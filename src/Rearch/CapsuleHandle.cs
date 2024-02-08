@@ -11,28 +11,20 @@ namespace Rearch;
 internal sealed class CapsuleHandle(UntypedCapsuleManager manager) :
     ICapsuleHandle
 {
-    /// <summary>
-    /// Gets the capsule manager for this handle.
-    /// </summary>
-    public UntypedCapsuleManager Manager { get; } = manager;
-
-    /// <summary>
-    /// Gets index into manager's side effect data.
-    /// </summary>
-    public int SideEffectDataIndex { get; private set; }
+    private int sideEffectDataIndex;
 
     /// <inheritdoc/>
     public T Invoke<T>(Capsule<T> capsule) =>
-        this.Manager.Read(capsule);
+        manager.Read(capsule);
 
     /// <inheritdoc/>
     public T Register<T>(SideEffect<T> sideEffect)
     {
-        if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
+        if (this.sideEffectDataIndex == manager.SideEffectData.Count)
         {
-            this.Manager.SideEffectData.Add(sideEffect(this.Manager));
+            manager.SideEffectData.Add(sideEffect(manager));
         }
 
-        return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++]!;
+        return (T)manager.SideEffectData[this.sideEffectDataIndex++]!;
     }
 }

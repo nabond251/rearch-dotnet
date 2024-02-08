@@ -15,19 +15,19 @@ internal abstract class DataflowGraphNode : IDisposable
     /// <summary>
     /// Gets a value indicating whether the node is free of side effects.
     /// </summary>
-    public abstract bool IsSuperPure { get; }
+    protected abstract bool IsSuperPure { get; }
 
     /// <summary>
     /// Updates node data.
     /// </summary>
     /// <returns>A value indicating whether the node data changed.</returns>
-    public abstract bool BuildSelf();
+    protected abstract bool BuildSelf();
 
     /// <summary>
     /// Adds a dependency node in the node network.
     /// </summary>
     /// <param name="node">Dependency node to add.</param>
-    public void AddDependency(DataflowGraphNode node)
+    internal void AddDependency(DataflowGraphNode node)
     {
         this.dependencies.Add(node);
         node.dependents.Add(this);
@@ -36,7 +36,7 @@ internal abstract class DataflowGraphNode : IDisposable
     /// <summary>
     /// Clears node network dependencies.
     /// </summary>
-    public void ClearDependencies()
+    internal void ClearDependencies()
     {
         foreach (var dep in this.dependencies)
         {
@@ -49,7 +49,7 @@ internal abstract class DataflowGraphNode : IDisposable
     /// <summary>
     /// Updates node data and propogates any changes to other associated nodes in the network.
     /// </summary>
-    public void BuildSelfAndDependents()
+    internal void BuildSelfAndDependents()
     {
         var selfChanged = this.BuildSelf();
         if (!selfChanged)

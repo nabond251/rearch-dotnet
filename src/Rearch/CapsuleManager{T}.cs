@@ -10,37 +10,34 @@ namespace Rearch;
 /// <typeparam name="T">Type of encapsulated data.</typeparam>
 internal sealed class CapsuleManager<T> : UntypedCapsuleManager
 {
+    private readonly Capsule<T> capsule;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CapsuleManager{T}"/> class.
     /// </summary>
     /// <param name="container">Capsule data container.</param>
     /// <param name="capsule">Capsule whose data and effects to manage.</param>
-    public CapsuleManager(CapsuleContainer container, Capsule<T> capsule)
+    internal CapsuleManager(CapsuleContainer container, Capsule<T> capsule)
         : base(container)
     {
-        this.Capsule = capsule;
+        this.capsule = capsule;
 
         this.BuildSelf();
     }
 
     /// <summary>
-    /// Gets capsule whose data and effects to manage.
+    /// Gets encapsulated data.
     /// </summary>
-    public Capsule<T> Capsule { get; }
-
-    /// <summary>
-    /// Gets encapsulated data, if any.
-    /// </summary>
-    public T Data { get; private set; } = default!;
+    internal T Data { get; private set; } = default!;
 
     /// <inheritdoc/>
-    public override bool BuildSelf()
+    protected override bool BuildSelf()
     {
         // Clear dependency relationships as they will be repopulated via `Read`
         this.ClearDependencies();
 
         // Build the capsule's new data
-        var newData = this.Capsule(new CapsuleHandle(this));
+        var newData = this.capsule(new CapsuleHandle(this));
         var didChange =
             !this.HasBuilt ||
             (newData is null && this.Data is not null) ||
@@ -60,7 +57,7 @@ internal sealed class CapsuleManager<T> : UntypedCapsuleManager
 
         if (disposing)
         {
-            this.Container.Capsules.Remove(this.Capsule);
+            this.Container.Capsules.Remove(this.capsule);
             foreach (var callback in this.ToDispose)
             {
                 callback();

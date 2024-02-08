@@ -4,7 +4,7 @@
 
 namespace Rearch.Reactor.Components;
 
-public class CapsuleContainerParameter()
+internal class CapsuleContainerParameter()
 {
-    public CapsuleContainer? Container { get; set; }
+    internal CapsuleContainer? Container { get; set; }
 }
