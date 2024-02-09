@@ -2,7 +2,7 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
-namespace Rearch.Example.Tests;
+namespace Rearch.Example;
 
 /// <summary>
 /// Test example.
@@ -15,7 +15,7 @@ public class ExampleTest
     [Fact]
     public void MainFunctionRunsCorrectly()
     {
-        using var container = new Container();
+        using var container = new CapsuleContainer();
 
         Assert.True(
             container.Read(Count) == 0,

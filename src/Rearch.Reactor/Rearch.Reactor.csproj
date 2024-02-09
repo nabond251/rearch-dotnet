@@ -4,10 +4,31 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Authors>Nathaniel Bond</Authors>
+    <Company>SDG Apps</Company>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <RepositoryUrl>https://github.com/nabond251/rearch-dotnet</RepositoryUrl>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <Title>Rearch.NET</Title>
+    <Copyright>Copyright (c) Soli Deo Gloria Apps. All rights reserved.</Copyright>
+    <Description>A re-imagined declarative approach to application design and architecture.  C# port of [rearch-dart](https://github.com/GregoryConrad/rearch-dart/).</Description>
+
+    <PackageReleaseNotes>v0.0.0-dev.2
+ - FEAT: initial impl of rearch.reactor.
+ - FEAT: working mvp.</PackageReleaseNotes>
+
+    <Version>0.0.0-dev.2</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\LICENSE">
@@ -18,6 +39,22 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Reactor.Maui" Version="2.0.24" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.19.0.84025">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rearch\Rearch.csproj" />
   </ItemGroup>
 
 </Project>

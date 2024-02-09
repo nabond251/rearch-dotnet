@@ -9,25 +9,26 @@ namespace Rearch;
 /// </summary>
 internal abstract class DataflowGraphNode : IDisposable
 {
-    private readonly HashSet<DataflowGraphNode> dependencies = [];
-    private readonly HashSet<DataflowGraphNode> dependents = [];
+    private readonly HashSet<DataflowGraphNode> dependencies = new();
+    private readonly HashSet<DataflowGraphNode> dependents = new();
 
     /// <summary>
     /// Gets a value indicating whether the node is free of side effects.
     /// </summary>
-    public abstract bool IsSuperPure { get; }
+    protected abstract bool IsSuperPure { get; }
 
-    /// <summary>
-    /// Updates node data.
-    /// </summary>
-    /// <returns>A value indicating whether the node data changed.</returns>
-    public abstract bool BuildSelf();
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     /// <summary>
     /// Adds a dependency node in the node network.
     /// </summary>
     /// <param name="node">Dependency node to add.</param>
-    public void AddDependency(DataflowGraphNode node)
+    internal void AddDependency(DataflowGraphNode node)
     {
         this.dependencies.Add(node);
         node.dependents.Add(this);
@@ -36,7 +37,7 @@ internal abstract class DataflowGraphNode : IDisposable
     /// <summary>
     /// Clears node network dependencies.
     /// </summary>
-    public void ClearDependencies()
+    internal void ClearDependencies()
     {
         foreach (var dep in this.dependencies)
         {
@@ -49,7 +50,7 @@ internal abstract class DataflowGraphNode : IDisposable
     /// <summary>
     /// Updates node data and propogates any changes to other associated nodes in the network.
     /// </summary>
-    public void BuildSelfAndDependents()
+    internal void BuildSelfAndDependents()
     {
         var selfChanged = this.BuildSelf();
         if (!selfChanged)
@@ -61,7 +62,7 @@ internal abstract class DataflowGraphNode : IDisposable
         // (We use skip(1) to avoid building this node twice)
         var buildOrder = this.CreateBuildOrder().Skip(1).ToList();
         var disposableNodes = GetDisposableNodesFromBuildOrder(buildOrder);
-        HashSet<DataflowGraphNode> changedNodes = [this];
+        var changedNodes = new HashSet<DataflowGraphNode> { this };
         foreach (var node in buildOrder)
         {
             var haveDepsChanged = node.dependencies.Any(changedNodes.Contains);
@@ -72,9 +73,9 @@ internal abstract class DataflowGraphNode : IDisposable
 
             if (disposableNodes.Contains(node))
             {
-                // Note: dependency/dependent relationships will be after this,
-                // since we are disposing all dependents in the build order,
-                // because we are adding this node to changedNodes
+                // Note: dependency/dependent relationships will be ok after
+                // this, since we are disposing all dependents in the build
+                // order, because we are adding this node to changedNodes
                 node.Dispose();
                 changedNodes.Add(node);
             }
@@ -89,12 +90,11 @@ internal abstract class DataflowGraphNode : IDisposable
         }
     }
 
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+    /// <summary>
+    /// Updates node data.
+    /// </summary>
+    /// <returns>A value indicating whether the node data changed.</returns>
+    protected abstract bool BuildSelf();
 
     /// <summary>
     /// Implements the disposable pattern.
@@ -113,7 +113,7 @@ internal abstract class DataflowGraphNode : IDisposable
     private static HashSet<DataflowGraphNode> GetDisposableNodesFromBuildOrder(
         IList<DataflowGraphNode> buildOrder)
     {
-        HashSet<DataflowGraphNode> disposable = [];
+        HashSet<DataflowGraphNode> disposable = new();
 
         var ds = buildOrder.Reverse().Where(node =>
         {

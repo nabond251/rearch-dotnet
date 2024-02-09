@@ -3,7 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2023-07-09
+## 2024-02-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`rearch` - `v0.0.0-dev.2`](#rearch---v000-dev2)
+
+Packages with other changes:
+
+ - [`rearch.reactor` - `v0.0.0-dev.2`](#rearch.reactor---v000-dev2)
+
+---
+
+#### `rearch` - `v0.0.0-dev.2`
+
+ - **FIX**: listener handle will not recreate manager on dispose.
+ - **FEAT**: initial impl of rearch.reactor.
+
+#### `rearch.reactor` - `v0.0.0-dev.2`
+
+ - **FEAT**: initial impl of rearch.reactor.
+ - **FEAT**: working mvp.
+
+
+## 2024-01-31
 
 ### Changes
 

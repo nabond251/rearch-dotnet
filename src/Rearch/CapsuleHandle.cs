@@ -8,31 +8,33 @@ namespace Rearch;
 /// Implementation of the handle given to a <see cref="Capsule{T}"/> to build its
 /// data.
 /// </summary>
-internal sealed class CapsuleHandle(UntypedCapsuleManager manager) :
+internal sealed class CapsuleHandle :
     ICapsuleHandle
 {
-    /// <summary>
-    /// Gets the capsule manager for this handle.
-    /// </summary>
-    public UntypedCapsuleManager Manager { get; } = manager;
+    private readonly UntypedCapsuleManager manager;
+    private int sideEffectDataIndex;
 
     /// <summary>
-    /// Gets index into manager's side effect data.
+    /// Initializes a new instance of the <see cref="CapsuleHandle"/> class.
     /// </summary>
-    public int SideEffectDataIndex { get; private set; }
+    /// <param name="manager">Capsule manager.</param>
+    public CapsuleHandle(UntypedCapsuleManager manager)
+    {
+        this.manager = manager;
+    }
 
     /// <inheritdoc/>
     public T Invoke<T>(Capsule<T> capsule) =>
-        this.Manager.Read(capsule);
+        this.manager.Read(capsule);
 
     /// <inheritdoc/>
     public T Register<T>(SideEffect<T> sideEffect)
     {
-        if (this.SideEffectDataIndex == this.Manager.SideEffectData.Count)
+        if (this.sideEffectDataIndex == this.manager.SideEffectData.Count)
         {
-            this.Manager.SideEffectData.Add(sideEffect(this.Manager));
+            this.manager.SideEffectData.Add(sideEffect(this.manager));
         }
 
-        return (T)this.Manager.SideEffectData[this.SideEffectDataIndex++]!;
+        return (T)this.manager.SideEffectData[this.sideEffectDataIndex++]!;
     }
 }

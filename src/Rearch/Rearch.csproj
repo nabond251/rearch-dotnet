@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -13,13 +13,17 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <Title>Rearch.NET</Title>
     <Copyright>Copyright (c) Soli Deo Gloria Apps. All rights reserved.</Copyright>
-    <Description>Re-imagined approach to application design and architecture.  C# port of [rearch-dart](https://github.com/GregoryConrad/rearch-dart/).</Description>
+    <Description>A re-imagined declarative approach to application design and architecture.  C# port of [rearch-dart](https://github.com/GregoryConrad/rearch-dart/).</Description>
 
-    <PackageReleaseNotes>v0.0.0-dev.1
+    <PackageReleaseNotes>v0.0.0-dev.2
+ - FIX: listener handle will not recreate manager on dispose.
+ - FEAT: initial impl of rearch.reactor.
+
+v0.0.0-dev.1
  - FEAT: add == check to skip some rebuilds.
  - FEAT: working mvp.</PackageReleaseNotes>
 
-    <Version>0.0.0-dev.1</Version>
+    <Version>0.0.0-dev.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

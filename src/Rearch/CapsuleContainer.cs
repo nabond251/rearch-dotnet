@@ -1,4 +1,4 @@
-// <copyright file="Container.cs" company="SdgApps">
+// <copyright file="CapsuleContainer.cs" company="SdgApps">
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
@@ -20,18 +20,25 @@ public delegate T Capsule<out T>(ICapsuleHandle handle);
 /// to a set of <see cref="Capsule{T}"/>s.
 /// </summary>
 /// <param name="capsuleReader">Capsule reader.</param>
-/// <seealso cref="Container.Listen(CapsuleListener)"/>
+/// <seealso cref="CapsuleContainer.Listen(CapsuleListener)"/>
 public delegate void CapsuleListener(ICapsuleReader capsuleReader);
 
 /// <summary>
-/// Contains the data of <see cref="Capsule{T}"/>s.
+/// Defines what a <see cref="SideEffect{T}"/> should look like (a
+/// <see cref="Func{T, TResult}"/> that consumes an
+/// <see cref="ISideEffectApi"/> and returns something).
+///
+/// If your side effect is more advanced or requires parameters,
+/// simply make a callable class instead of just a regular
+/// <see cref="Func{T, TResult}"/>!
+///
 /// See the documentation for more.
 /// </summary>
-public class Container : IDisposable
+public class CapsuleContainer : IDisposable
 {
     private readonly Dictionary<
         object,
-        UntypedCapsuleManager> capsules = [];
+        UntypedCapsuleManager> capsules = new();
 
     /// <summary>
     /// Gets map of container to manager.
@@ -45,7 +52,7 @@ public class Container : IDisposable
     /// <param name="capsule">Capsule whose data to read.</param>
     /// <returns><paramref name="capsule"/> data.</returns>
     public T Read<T>(Capsule<T> capsule) =>
-        this.Manager(capsule).Data;
+        this.ManagerOf(capsule).Data;
 
     /// <summary>
     /// <i>Temporarily</i> listens to changes in a given set of
@@ -91,7 +98,7 @@ public class Container : IDisposable
     /// <typeparam name="T">Type of encapsulated data.</typeparam>
     /// <param name="capsule">Capsule whose manager to get.</param>
     /// <returns><paramref name="capsule"/> manager.</returns>
-    internal CapsuleManager<T> Manager<T>(Capsule<T> capsule)
+    internal CapsuleManager<T> ManagerOf<T>(Capsule<T> capsule)
     {
         if (!this.Capsules.ContainsKey(capsule))
         {
