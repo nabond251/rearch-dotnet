@@ -6,6 +6,7 @@ on:
       - "*"
 
 env:
+  SolutionName: ./Rearch.Build.sln
   NuGetDirectory: ${{github.workspace}}/nuget
   NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
 
@@ -22,8 +23,8 @@ jobs:
           dotnet-version: '8.0.x' # SDK Version to use.
       - name: Set VERSION variable from tag
         run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
-      - run: dotnet build --configuration Release /p:Version=${VERSION}
+      - run: dotnet build ${env:SolutionName} --configuration Release /p:Version=${VERSION}
       - name: Create the package
-        run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output ${NuGetDirectory}
+        run: dotnet pack ${env:SolutionName} --configuration Release /p:Version=${VERSION} --no-build --output ${NuGetDirectory}
       - name: Publish the package to NuGet
         run: dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key ${NUGET_AUTH_TOKEN} --source https://api.nuget.org/v3/index.json
