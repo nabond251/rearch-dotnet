@@ -13,7 +13,7 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <Title>Rearch.NET</Title>
     <Copyright>Copyright (c) Soli Deo Gloria Apps. All rights reserved.</Copyright>
-    <Description>A re-imagined declarative approach to application design and architecture</Description>
+    <Description>A re-imagined declarative approach to application design and architecture.  C# port of [rearch-dart](https://github.com/GregoryConrad/rearch-dart/).</Description>
 
     <PackageReleaseNotes>v0.0.0-dev.2
  - FEAT: initial impl of rearch.reactor.
