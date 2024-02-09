@@ -14,7 +14,7 @@ on:
     - cron: "0 10 * * *"
 
 env:
-  SolutionName: ./Rearch.Build.sln
+  SolutionName: Rearch.Build.sln
 
 jobs:
   build:
@@ -28,8 +28,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore ${env:SolutionName}
+      run: dotnet restore ${SolutionName}
     - name: Build
-      run: dotnet build ${env:SolutionName} --no-restore
+      run: dotnet build ${SolutionName} --no-restore
     - name: Test
-      run: dotnet test ${env:SolutionName} --no-build --verbosity normal
+      run: dotnet test ${SolutionName} --no-build --verbosity normal
