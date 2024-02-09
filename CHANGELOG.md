@@ -15,19 +15,19 @@ Packages with breaking changes:
 
 Packages with other changes:
 
- - [`flutter_rearch` - `v0.0.0-dev.2`](#flutter_rearch---v000-dev2)
+ - [`rearch.reactor` - `v0.0.0-dev.2`](#rearch.reactor---v000-dev2)
 
 ---
-
-#### `flutter_rearch` - `v0.0.0-dev.2`
-
- - **FEAT**: initial impl of flutter_rearch.
- - **FEAT**: working mvp.
 
 #### `rearch` - `v0.0.0-dev.2`
 
  - **FIX**: listener handle will not recreate manager on dispose.
- - **FEAT**: initial impl of flutter_rearch.
+ - **FEAT**: initial impl of rearch.reactor.
+
+#### `rearch.reactor` - `v0.0.0-dev.2`
+
+ - **FEAT**: initial impl of rearch.reactor.
+ - **FEAT**: working mvp.
 
 
 ## 2024-01-31
