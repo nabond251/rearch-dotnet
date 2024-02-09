@@ -8,7 +8,7 @@ namespace Rearch.Reactor.Components;
 /// Implementation of the handle given to a <see cref="Capsule{T}"/> to build its
 /// data.
 /// </summary>
-internal class ComponentHandle(
+internal sealed class ComponentHandle(
     ComponentSideEffectApi api,
     CapsuleContainer container) : ICapsuleHandle
 {

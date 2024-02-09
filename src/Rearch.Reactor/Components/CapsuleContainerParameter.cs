@@ -7,7 +7,7 @@ namespace Rearch.Reactor.Components;
 /// <summary>
 /// <see cref="CapsuleContainer"/> parameter.
 /// </summary>
-internal class CapsuleContainerParameter()
+internal sealed class CapsuleContainerParameter()
 {
     /// <summary>
     /// Gets or sets container provided by
