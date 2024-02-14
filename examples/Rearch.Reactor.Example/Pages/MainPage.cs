@@ -55,10 +55,10 @@ partial class MainPage : CapsuleConsumer
 
         return ContentPage(
             Grid("Auto, *, Auto", "*",
-                TodoEditor(OnCreatedNewTask),
+                new TodoEditor(OnCreatedNewTask),
 
                 CollectionView()
-                    .ItemsSource(todoItems, i => RenderItem(i, OnItemDoneChanged))
+                    .ItemsSource(todoItems, i => new Item(i, OnItemDoneChanged))
                     .GridRow(1),
 
                 Button("Clear List")
@@ -92,8 +92,11 @@ partial class MainPage : CapsuleConsumer
             DeleteTodos(todoItems);
         }
     }
+}
 
-    static Grid RenderItem(Todo item, Action<Todo, bool> onItemDoneChanged)
+internal class Item(Todo item, Action<Todo, bool> onItemDoneChanged) : CapsuleConsumer
+{
+    public override Grid Render(ICapsuleHandle use)
         => Grid("54", "Auto, *",
             CheckBox()
                 .IsChecked(item.Done)
@@ -102,8 +105,11 @@ partial class MainPage : CapsuleConsumer
                 .TextDecorations(item.Done ? TextDecorations.Strikethrough : TextDecorations.None)
                 .VCenter()
                 .GridColumn(1));
+}
 
-    static VisualNode TodoEditor(Action<Todo> created)
+internal class TodoEditor(Action<Todo> created) : CapsuleConsumer
+{
+    public override VisualNode Render(ICapsuleHandle use)
         => Render<string>(state =>
             Grid("*", "*,Auto",
                 Entry()
