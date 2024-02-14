@@ -55,24 +55,49 @@ partial class MainPage : CapsuleConsumer
 
         return ContentPage(
             Grid("Auto, *, Auto", "*",
-                TodoEditor(i => OnCreatedNewTask(i, use)),
+                TodoEditor(OnCreatedNewTask),
 
                 CollectionView()
-                    .ItemsSource(todoItems, i => RenderItem(i, use))
+                    .ItemsSource(todoItems, i => RenderItem(i, OnItemDoneChanged))
                     .GridRow(1),
 
                 Button("Clear List")
-                    .OnClicked(() => OnClearList(use))
+                    .OnClicked(OnClearList)
                     .GridRow(2)
 
             ));
+
+        void OnItemDoneChanged(Todo item, bool done)
+        {
+            var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
+
+            item.Done = done;
+
+            UpdateTodo(item);
+        }
+
+        void OnCreatedNewTask(Todo todo)
+        {
+            var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
+
+            AddTodo(todo);
+        }
+
+        void OnClearList()
+        {
+            var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
+
+            var todoItems = use.Invoke(TodoItemsCapsule);
+
+            DeleteTodos(todoItems);
+        }
     }
 
-    Grid RenderItem(Todo item, ICapsuleHandle use)
+    static Grid RenderItem(Todo item, Action<Todo, bool> onItemDoneChanged)
         => Grid("54", "Auto, *",
             CheckBox()
                 .IsChecked(item.Done)
-                .OnCheckedChanged((s, args) => OnItemDoneChanged(item, args.Value, use)),
+                .OnCheckedChanged((s, args) => onItemDoneChanged(item, args.Value)),
             Label(item.Task)
                 .TextDecorations(item.Done ? TextDecorations.Strikethrough : TextDecorations.None)
                 .VCenter()
@@ -93,29 +118,4 @@ partial class MainPage : CapsuleConsumer
                     })
                 )
             );
-
-    void OnItemDoneChanged(Todo item, bool done, ICapsuleHandle use)
-    {
-        var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
-
-        item.Done = done;
-
-        UpdateTodo(item);
-    }
-
-    void OnCreatedNewTask(Todo todo, ICapsuleHandle use)
-    {
-        var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
-
-        AddTodo(todo);
-    }
-
-    void OnClearList(ICapsuleHandle use)
-    {
-        var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
-
-        var todoItems = use.Invoke(TodoItemsCapsule);
-
-        DeleteTodos(todoItems);
-    }
 }
