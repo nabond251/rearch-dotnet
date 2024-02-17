@@ -6,15 +6,18 @@ namespace Rearch.Types;
 
 /// <summary>
 /// The data variant for an <see cref="AsyncValue{T}"/>.
-///
-/// To be in this state, a <see cref="Task{TResult}"/> or <see cref="IObservable{T}"/> emitted a data event.
 /// </summary>
 /// <typeparam name="T">Type of async data.</typeparam>
+/// <remarks>
+/// To be in this state, a <see cref="Task{TResult}"/> or
+/// <see cref="IObservable{T}"/> emitted a data event.
+/// </remarks>
 public sealed class AsyncData<T> : AsyncValue<T>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncData{T}"/> class.
-    /// Creates an <see cref="AsyncData{T}"/> with the supplied <paramref name="data"/>.
+    /// Creates an <see cref="AsyncData{T}"/> with the supplied
+    /// <paramref name="data"/>.
     /// </summary>
     /// <param name="data">The data of this <see cref="AsyncData{T}"/>.</param>
     public AsyncData(T data)
@@ -31,7 +34,9 @@ public sealed class AsyncData<T> : AsyncValue<T>
     public override int GetHashCode() => this.Data?.GetHashCode() ?? 0;
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is AsyncData<T> asyncData && EqualityComparer<T>.Default.Equals(asyncData.Data, this.Data);
+    public override bool Equals(object? obj) =>
+        obj is AsyncData<T> asyncData &&
+        EqualityComparer<T>.Default.Equals(asyncData.Data, this.Data);
 
     /// <inheritdoc/>
     public override string ToString() => $"AsyncData(data: {this.Data})";

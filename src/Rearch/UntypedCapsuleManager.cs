@@ -21,7 +21,8 @@ internal abstract class UntypedCapsuleManager :
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether encapsulated data has been built.
+    /// Gets or sets a value indicating whether encapsulated data has been
+    /// built.
     /// </summary>
     internal bool HasBuilt { get; set; }
 

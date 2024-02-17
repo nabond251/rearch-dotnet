@@ -6,22 +6,25 @@ namespace Rearch.Types;
 
 /// <summary>
 /// The error variant for an <see cref="AsyncValue{T}"/>.
-///
-/// To be in this state, a <see cref="Task{TResult}"/> or <see cref="IObservable{T}"/> emitted an error event.
 /// </summary>
 /// <typeparam name="T">Type of async data.</typeparam>
+/// <remarks>
+/// To be in this state, a <see cref="Task{TResult}"/> or
+/// <see cref="IObservable{T}"/> emitted an error event.
+/// </remarks>
 public sealed class AsyncError<T> : AsyncValue<T>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncError{T}"/> class.
-    /// Creates an <see cref="AsyncError{T}"/> with the supplied <paramref name="error"/>
-    /// and <paramref name="previousData"/>.
+    /// Creates an <see cref="AsyncError{T}"/> with the supplied
+    /// <paramref name="error"/> and <paramref name="previousData"/>.
     /// </summary>
     /// <param name="error">
     /// The emitted error associated with this <see cref="AsyncError{T}"/>.
     /// </param>
     /// <param name="previousData">
-    /// The previous data (from a predecessor <see cref="AsyncData{T}"/>), if it exists.
+    /// The previous data (from a predecessor <see cref="AsyncData{T}"/>), if it
+    /// exists.
     /// </param>
     public AsyncError(Exception error, Maybe<T> previousData)
     {
@@ -35,14 +38,20 @@ public sealed class AsyncError<T> : AsyncValue<T>
     public Exception Error { get; }
 
     /// <summary>
-    /// Gets the previous data (from a predecessor <see cref="AsyncData{T}"/>), if it exists.
-    /// This can happen if a new <see cref="Task{TResult}"/>/<see cref="IObservable{T}"/> is watched and the
-    /// <see cref="Task{TResult}"/>/<see cref="IObservable{T}"/> it is replacing was in the <see cref="AsyncData{T}"/> state.
+    /// Gets the previous data (from a predecessor <see cref="AsyncData{T}"/>),
+    /// if it exists.
     /// </summary>
+    /// <remarks>
+    /// This can happen if a new
+    /// <see cref="Task{TResult}"/>/<see cref="IObservable{T}"/> is watched and
+    /// the <see cref="Task{TResult}"/>/<see cref="IObservable{T}"/> it is
+    /// replacing was in the <see cref="AsyncData{T}"/> state.
+    /// </remarks>
     public Maybe<T> PreviousData { get; }
 
     /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(this.Error, this.PreviousData);
+    public override int GetHashCode() =>
+        HashCode.Combine(this.Error, this.PreviousData);
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) =>

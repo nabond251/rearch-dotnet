@@ -6,18 +6,20 @@ namespace Rearch.Types;
 
 /// <summary>
 /// Represents an optional value of type <typeparamref name="T"/>.
-/// <br/>
-/// <br/>
-/// A <see cref="Maybe{T}"/> is either:
-/// <list type="bullet">
-/// <item><see cref="Just{T}"/>, which contains a value of type <typeparamref name="T"/></item>
-/// <item><see cref="None{T}"/>, which does not contain a value</item>
-/// </list>
-///
-/// Adapted from Rust's <c>Maybe</c>, see more here:
-/// https://doc.rust-lang.org/std/option/index.html.
 /// </summary>
 /// <typeparam name="T">Type of contained data, if any.</typeparam>
+/// <remarks>
+/// A <see cref="Maybe{T}"/> is either:
+/// <list type="bullet">
+/// <item>
+/// <see cref="Just{T}"/>, which contains a value of type
+/// <typeparamref name="T"/>
+/// </item>
+/// <item><see cref="None{T}"/>, which does not contain a value</item>
+/// </list>
+/// Adapted from Rust's <c>Maybe</c>, see more here:
+/// https://doc.rust-lang.org/std/option/index.html.
+/// </remarks>
 public abstract class Maybe<T>
 {
     /// <summary>

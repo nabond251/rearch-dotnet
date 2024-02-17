@@ -5,8 +5,8 @@
 namespace Rearch.Reactor.Components;
 
 /// <summary>
-/// Implementation of the handle given to a <see cref="Capsule{T}"/> to build its
-/// data.
+/// Implementation of the handle given to a <see cref="Capsule{T}"/> to build
+/// its data.
 /// </summary>
 internal sealed class ComponentHandle(
     ComponentSideEffectApi api,

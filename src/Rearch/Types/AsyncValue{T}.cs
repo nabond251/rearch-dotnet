@@ -5,18 +5,21 @@
 namespace Rearch.Types;
 
 /// <summary>
-/// The current state of a <see cref="Task{TResult}"/> or <see cref="IObservable{T}"/>,
-/// accessible from a synchronous context.
-///
-/// One of three variants: <see cref="AsyncData{T}"/>, <see cref="AsyncError{T}"/>, or <see cref="AsyncLoading{T}"/>.
-///
-/// Often, when a <see cref="Task{TResult}"/>/<see cref="IObservable{T}"/> emits an error, or is swapped out and is put
-/// back into the loading state, you want access to the previous data.
-/// (Example: pull-to-refresh in UI and you want to show the current data.)
-/// Thus, a `previousData` is provided in the <see cref="AsyncError{T}"/> and <see cref="AsyncLoading{T}"/>
-/// states so you can access the previous data (if it exists).
+/// The current state of a <see cref="Task{TResult}"/> or
+/// <see cref="IObservable{T}"/>, accessible from a synchronous context.
 /// </summary>
 /// <typeparam name="T">Type of async data.</typeparam>
+/// <remarks>
+/// One of three variants: <see cref="AsyncData{T}"/>,
+/// <see cref="AsyncError{T}"/>, or <see cref="AsyncLoading{T}"/>.<br/>
+/// <br/>
+/// Often, when a <see cref="Task{TResult}"/>/<see cref="IObservable{T}"/> emits
+/// an error, or is swapped out and is put back into the loading state, you want
+/// access to the previous data. (Example: pull-to-refresh in UI and you want to
+/// show the current data.) Thus, a `previousData` is provided in the
+/// <see cref="AsyncError{T}"/> and <see cref="AsyncLoading{T}"/> states so you
+/// can access the previous data (if it exists).
+/// </remarks>
 public abstract class AsyncValue<T>
 {
     /// <summary>

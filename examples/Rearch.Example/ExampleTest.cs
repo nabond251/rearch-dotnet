@@ -48,5 +48,6 @@ public class ExampleTest
     private static int Count(ICapsuleHandle use) =>
         use.Invoke(CountManager).Count;
 
-    private static int CountPlusOne(ICapsuleHandle use) => use.Invoke(Count) + 1;
+    private static int CountPlusOne(ICapsuleHandle use) =>
+        use.Invoke(Count) + 1;
 }
