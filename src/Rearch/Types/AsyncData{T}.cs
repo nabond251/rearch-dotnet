@@ -12,7 +12,7 @@ namespace Rearch.Types;
 /// To be in this state, a <see cref="Task{TResult}"/> or
 /// <see cref="IObservable{T}"/> emitted a data event.
 /// </remarks>
-public sealed class AsyncData<T> : AsyncValue<T>
+public sealed class AsyncData<T> : AsyncValue<T>, IEquatable<AsyncData<T>?>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncData{T}"/> class.
@@ -30,13 +30,52 @@ public sealed class AsyncData<T> : AsyncValue<T>
     /// </summary>
     public T Data { get; }
 
-    /// <inheritdoc/>
-    public override int GetHashCode() => this.Data?.GetHashCode() ?? 0;
+    /// <summary>
+    /// Equality operator.
+    /// </summary>
+    /// <param name="left">Left-hand operand.</param>
+    /// <param name="right">Right-hand operand.</param>
+    /// <returns>
+    /// A value indicating whether <paramref name="left"/> and
+    /// <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(AsyncData<T>? left, AsyncData<T>? right)
+    {
+        return EqualityComparer<AsyncData<T>>.Default.Equals(left, right);
+    }
+
+    /// <summary>
+    /// Inequality operator.
+    /// </summary>
+    /// <param name="left">Left-hand operand.</param>
+    /// <param name="right">Right-hand operand.</param>
+    /// <returns>
+    /// A value indicating whether <paramref name="left"/> and
+    /// <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(AsyncData<T>? left, AsyncData<T>? right)
+    {
+        return !(left == right);
+    }
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) =>
-        obj is AsyncData<T> asyncData &&
-        EqualityComparer<T>.Default.Equals(asyncData.Data, this.Data);
+    public override bool Equals(object? obj)
+    {
+        return this.Equals(obj as AsyncData<T>);
+    }
+
+    /// <inheritdoc/>
+    public bool Equals(AsyncData<T>? other)
+    {
+        return other is not null &&
+               EqualityComparer<T>.Default.Equals(this.Data, other.Data);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.Data);
+    }
 
     /// <inheritdoc/>
     public override string ToString() => $"AsyncData(data: {this.Data})";

@@ -12,7 +12,7 @@ namespace Rearch.Types;
 /// To be in this state, a <see cref="Task{TResult}"/> or
 /// <see cref="IObservable{T}"/> emitted an error event.
 /// </remarks>
-public sealed class AsyncError<T> : AsyncValue<T>
+public sealed class AsyncError<T> : AsyncValue<T>, IEquatable<AsyncError<T>?>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncError{T}"/> class.
@@ -49,15 +49,53 @@ public sealed class AsyncError<T> : AsyncValue<T>
     /// </remarks>
     public Maybe<T> PreviousData { get; }
 
-    /// <inheritdoc/>
-    public override int GetHashCode() =>
-        HashCode.Combine(this.Error, this.PreviousData);
+    /// <summary>
+    /// Equality operator.
+    /// </summary>
+    /// <param name="left">Left-hand operand.</param>
+    /// <param name="right">Right-hand operand.</param>
+    /// <returns>
+    /// A value indicating whether <paramref name="left"/> and
+    /// <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(AsyncError<T>? left, AsyncError<T>? right)
+    {
+        return EqualityComparer<AsyncError<T>>.Default.Equals(left, right);
+    }
+
+    /// <summary>
+    /// Inequality operator.
+    /// </summary>
+    /// <param name="left">Left-hand operand.</param>
+    /// <param name="right">Right-hand operand.</param>
+    /// <returns>
+    /// A value indicating whether <paramref name="left"/> and
+    /// <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(AsyncError<T>? left, AsyncError<T>? right)
+    {
+        return !(left == right);
+    }
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) =>
-            obj is AsyncError<T> asyncError &&
-            asyncError.Error.Equals(this.Error) &&
-            asyncError.PreviousData.Equals(this.PreviousData);
+    public override bool Equals(object? obj)
+    {
+        return this.Equals(obj as AsyncError<T>);
+    }
+
+    /// <inheritdoc/>
+    public bool Equals(AsyncError<T>? other)
+    {
+        return other is not null &&
+               EqualityComparer<Exception>.Default.Equals(this.Error, other.Error) &&
+               EqualityComparer<Maybe<T>>.Default.Equals(this.PreviousData, other.PreviousData);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.Error, this.PreviousData);
+    }
 
     /// <inheritdoc/>
     public override string ToString() =>
