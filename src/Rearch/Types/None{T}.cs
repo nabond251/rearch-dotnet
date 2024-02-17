@@ -26,4 +26,10 @@ public sealed class None<T> : Maybe<T>
 
     /// <inheritdoc/>
     public override string ToString() => "None()";
+
+    /// <inheritdoc/>
+    public override TResult Match<TResult>(
+        Func<T, TResult> onJust,
+        Func<TResult> onNone) =>
+        onNone();
 }

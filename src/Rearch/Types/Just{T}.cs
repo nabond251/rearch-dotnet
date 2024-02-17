@@ -15,7 +15,10 @@ public sealed class Just<T> : Maybe<T>
     /// Creates a <see cref="Maybe{T}"/> with the associated immutable
     /// <see cref="Value"/>.
     /// </summary>
-    /// <param name="value">Associated immutable value.</param>
+    /// <param name="value">
+    /// The immutable <see cref="Value"/> associated with this
+    /// <see cref="Maybe{T}"/>.
+    /// </param>
     public Just(T value)
     {
         this.Value = value;
@@ -37,4 +40,10 @@ public sealed class Just<T> : Maybe<T>
 
     /// <inheritdoc/>
     public override string ToString() => $"Just(value: {this.Value})";
+
+    /// <inheritdoc/>
+    public override TResult Match<TResult>(
+        Func<T, TResult> onJust,
+        Func<TResult> onNone) =>
+        onJust(this.Value);
 }

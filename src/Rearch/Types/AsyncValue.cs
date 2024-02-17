@@ -2,133 +2,68 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
-using Rearch.Types;
-
-namespace Rearch;
+namespace Rearch.Types;
 
 /// <summary>
-/// The current state of a [Future] or [Stream],
-/// accessible from a synchronous context.
-///
-/// One of three variants: [AsyncData], [AsyncError], or [AsyncLoading].
-///
-/// Often, when a [Future]/[Stream] emits an error, or is swapped out and is put
-/// back into the loading state, you want access to the previous data.
-/// (Example: pull-to-refresh in UI and you want to show the current data.)
-/// Thus, a `previousData` is provided in the [AsyncError] and [AsyncLoading]
-/// states so you can access the previous data (if it exists).
+/// Contains <see cref="AsyncValue{T}"/> factory methods.
 /// </summary>
-public class AsyncValue<T> {
-    /// Base constructor for [AsyncValue]s.
-    private protected AsyncValue()
-    {
-    }
+public static class AsyncValue
+{
+    /// <summary>
+    /// Creates an <see cref="AsyncData{T}"/> with the supplied <paramref name="data"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="data">The data of this <see cref="AsyncData{T}"/>.</param>
+    /// <returns>New <see cref="AsyncData{T}"/>.</returns>
+    public static AsyncValue<T> Data<T>(T data) => new AsyncData<T>(data);
 
-    /// Shortcut for [AsyncData.new].
-    public static AsyncValue<T> Data(T data) => new AsyncData<T>(data);
+    /// <summary>
+    /// Creates an <see cref="AsyncError{T}"/> with the supplied <paramref name="error"/>
+    /// and <paramref name="previousData"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="error">
+    /// The emitted error associated with this <see cref="AsyncError{T}"/>.
+    /// </param>
+    /// <param name="previousData">
+    /// The previous data (from a predecessor <see cref="AsyncData{T}"/>), if it exists.
+    /// </param>
+    /// <returns>New <see cref="AsyncError{T}"/>.</returns>
+    public static AsyncValue<T> Error<T>(
+        Exception error,
+        Maybe<T> previousData) => new AsyncError<T>(error, previousData);
 
-    /// Shortcut for [AsyncError.new].
-    public static AsyncValue<T> Error(
-        Exception ex,
-        Maybe<T> previousData) => new AsyncError<T>(ex, previousData);
+    /// <summary>
+    /// Creates an <see cref="AsyncLoading{T}"/> with the supplied <paramref name="previousData"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="previousData">
+    /// The previous data (from a predecessor <see cref="AsyncData{T}"/>), if it exists.
+    /// </param>
+    /// <returns>New <see cref="AsyncLoading{T}"/>.</returns>
+    public static AsyncValue<T> Loading<T>(Maybe<T> previousData) => new AsyncLoading<T>(previousData);
 
-    /// Shortcut for [AsyncLoading.new].
-    public static AsyncValue<T> Loading(Maybe<T> previousData) => new AsyncLoading<T>(previousData);
-
-    /// Transforms a fallible [Future] into a safe-to-read [AsyncValue].
+    /// <summary>
+    /// Transforms a fallible <see cref="Task{TResult}"/> into a safe-to-read <see cref="AsyncValue{T}"/>.
     /// Useful when mutating state.
-    static async Task<AsyncValue<T>> Guard<T>(Func<Task<T>> fn)
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="fn">
+    /// Function resulting in <see cref="Task{TResult}"/> to transform.
+    /// </param>
+    /// <returns>
+    /// Result of <paramref name="fn"/> transformed into a safe-to-read
+    /// <see cref="AsyncValue{T}"/>.
+    /// </returns>
+    public static async Task<AsyncValue<T>> Guard<T>(Func<Task<T>> fn)
     {
         try
         {
             return new AsyncData<T>(await fn());
         }
-        catch (Exception ex)
+        catch (Exception error)
         {
-            return new AsyncError<T>(ex, new None<T>());
+            return new AsyncError<T>(error, new None<T>());
         }
     }
-}
-
-/// <summary>
-/// The data variant for an [AsyncValue].
-///
-/// To be in this state, a [Future] or [Stream] emitted a data event.
-/// </summary>
-public sealed class AsyncData<T> : AsyncValue<T> {
-    /// Creates an [AsyncData] with the supplied [data].
-    public AsyncData(T data)
-    {
-        this.data = data;
-    }
-
-    /// The data of this [AsyncData].
-    public readonly T data;
-
-    public override int GetHashCode() => data.GetHashCode();
-
-    public override bool Equals(object? other) => other is AsyncData<T> asyncData && EqualityComparer<T>.Default.Equals(asyncData.data, data);
-
-    public override string ToString() => $"AsyncData(data: {data})";
-}
-
-/// <summary>
-/// The loading variant for an [AsyncValue].
-///
-/// To be in this state, a new [Future] or [Stream] has not emitted
-/// a data or error event yet.
-/// </summary>
-public sealed class AsyncLoading<T> : AsyncValue<T>
-{
-    /// Creates an [AsyncLoading] with the supplied [previousData].
-    public AsyncLoading(Maybe<T> previousData)
-    {
-        this.previousData = previousData;
-    }
-
-    /// The previous data (from a predecessor [AsyncData]), if it exists.
-    /// This can happen if a new [Future]/[Stream] is watched and the
-    /// [Future]/[Stream] it is replacing was in the [AsyncData] state.
-    public readonly Maybe<T> previousData;
-
-    public override int GetHashCode() => previousData.GetHashCode();
-
-    public override bool Equals(object? other) =>
-            other is AsyncLoading<T> asyncLoading && asyncLoading.previousData.Equals(previousData);
-
-    public override string ToString() => $"AsyncLoading(previousData: {previousData})";
-}
-
-/// <summary>
-/// The error variant for an [AsyncValue].
-///
-/// To be in this state, a [Future] or [Stream] emitted an error event.
-/// </summary>
-public sealed class AsyncError<T> : AsyncValue<T>
-{
-    /// Creates an [AsyncError] with the supplied [error], [stackTrace],
-    /// and [previousData].
-    public AsyncError(Exception ex, Maybe<T> previousData)
-    {
-        this.ex = ex;
-        this.previousData = previousData;
-    }
-
-    /// The emitted error associated with this [AsyncError].
-    public readonly Exception ex;
-
-    /// The previous data (from a predecessor [AsyncData]), if it exists.
-    /// This can happen if a new [Future]/[Stream] is watched and the
-    /// [Future]/[Stream] it is replacing was in the [AsyncData] state.
-    public readonly Maybe<T> previousData;
-
-    public override int GetHashCode() => HashCode.Combine(ex, previousData);
-
-    public override bool Equals(object? other) =>
-            other is AsyncError<T> asyncError &&
-            asyncError.ex.Equals(ex) &&
-            asyncError.previousData.Equals(previousData);
-
-    public override string ToString() =>
-        $"AsyncError(previousData: {previousData}, ex: ${ex})";
 }

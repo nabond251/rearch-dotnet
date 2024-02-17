@@ -32,14 +32,10 @@ public static class MaybeConvenienceExtensions
     /// </returns>
     public static T UnwrapOr<T>(
         this Maybe<T> source,
-        T defaultValue)
-    {
-        return source switch
-        {
-            Just<T> just => just.Value,
-            _ => defaultValue,
-        };
-    }
+        T defaultValue) =>
+        source.Match(
+            onJust: value => value,
+            onNone: () => defaultValue);
 
     /// <summary>
     /// Returns <see cref="Just{T}.Value"/> if <paramref name="source"/> is a
@@ -59,14 +55,10 @@ public static class MaybeConvenienceExtensions
     /// </returns>
     public static T UnwrapOrElse<T>(
         this Maybe<T> source,
-        Func<T> defaultFn)
-    {
-        return source switch
-        {
-            Just<T> just => just.Value,
-            _ => defaultFn(),
-        };
-    }
+        Func<T> defaultFn) =>
+        source.Match(
+            onJust: value => value,
+            onNone: defaultFn);
 
     /// <summary>
     /// Returns <see cref="Just{T}.Value"/> or <c>default</c> for
@@ -78,12 +70,8 @@ public static class MaybeConvenienceExtensions
     /// <see cref="Just{T}.Value"/> or <c>default</c> for
     /// <see cref="None{T}"/>.
     /// </returns>
-    public static T? AsNullable<T>(this Maybe<T> source)
-    {
-        return source switch
-        {
-            Just<T> just => just.Value,
-            _ => default,
-        };
-    }
+    public static T? AsNullable<T>(this Maybe<T> source) =>
+        source.Match(
+            onJust: value => value,
+            onNone: () => default!);
 }
