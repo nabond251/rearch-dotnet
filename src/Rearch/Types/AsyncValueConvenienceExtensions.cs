@@ -18,17 +18,23 @@ namespace Rearch.Types;
 public static class AsyncValueConvenienceExtensions
 {
     /// <summary>
-    /// Returns <i>any</i> data contained within this <see cref="AsyncValue{T}"/>,
-    /// including `previousData` for the [AsyncLoading] and [AsyncError] cases.
+    /// Returns <i>any</i> data contained within this
+    /// <see cref="AsyncValue{T}"/>, including <c>PreviousData</c> for the
+    /// <see cref="AsyncLoading{T}"/> and <see cref="AsyncError{T}"/> cases.
     /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="source">The source of the async data.</param>
     /// <returns>
-    /// Returns [Some] of [AsyncData.data] if `this` is an [AsyncData].<br/>
-    /// Returns [AsyncLoading.previousData] if `this` is an [AsyncLoading].<br/>
-    /// Returns [AsyncError.previousData] if `this` is an [AsyncError].
+    /// <see cref="Just{T}"/> of <see cref="AsyncData{T}.Data"/> if
+    /// <paramref name="source"/> is an <see cref="AsyncData{T}"/>.<br/>
+    /// <see cref="AsyncLoading{T}.PreviousData"/> if <paramref name="source"/>
+    /// is an <see cref="AsyncLoading{T}"/>.<br/>
+    /// <see cref="AsyncError{T}.PreviousData"/> if <paramref name="source"/> is
+    /// an <see cref="AsyncError{T}"/>.
     /// </returns>
     /// <remarks>
-    /// See also [unwrapOr], which will only return the value
-    /// on the [AsyncData] case.
+    /// See also <see cref="UnwrapOr{T}(AsyncValue{T}, T)"/>, which will only
+    /// return the value on the <see cref="AsyncData{T}"/> case.
     /// </remarks>
     public static Maybe<T> GetData<T>(this AsyncValue<T> source) =>
         source.Match(
@@ -36,11 +42,26 @@ public static class AsyncValueConvenienceExtensions
             onLoading: previousData => previousData,
             onError: (_, previousData) => previousData);
 
-    /// Returns [AsyncData.data] if `this` is an [AsyncData].
-    /// Otherwise, returns [defaultValue].
-    ///
-    /// See also [dataOr], which will always return any `data`/`previousData`
-    /// contained within the <see cref="AsyncValue{T}"/>.
+    /// <summary>
+    /// Returns <see cref="AsyncData{T}.Data"/> if <paramref name="source"/> is
+    /// an <see cref="AsyncData{T}"/>.<br/>
+    /// Otherwise, returns <paramref name="defaultValue"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="source">The source of the async data.</param>
+    /// <param name="defaultValue">
+    /// Default value when <see cref="AsyncLoading{T}"/> or
+    /// <see cref="AsyncError{T}"/>.
+    /// </param>
+    /// <returns>
+    /// <see cref="AsyncData{T}.Data"/> if <paramref name="source"/> is an
+    /// <see cref="AsyncData{T}"/>; otherwise, <paramref name="defaultValue"/>.
+    /// </returns>
+    /// <remarks>
+    /// See also <see cref="DataOr{T}(AsyncValue{T}, T)"/>, which will always
+    /// return any <c>Data</c>/<c>PreviousData</c> contained within the
+    /// <see cref="AsyncValue{T}"/>.
+    /// </remarks>
     public static T UnwrapOr<T>(
         this AsyncValue<T> source,
         T defaultValue)
@@ -52,11 +73,27 @@ public static class AsyncValueConvenienceExtensions
         };
     }
 
-    /// Returns [AsyncData.data] if `this` is an [AsyncData].
-    /// Otherwise, calls and returns the result of [defaultFn].
-    ///
-    /// See also [dataOrElse], which will always return any `data`/`previousData`
-    /// contained within the <see cref="AsyncValue{T}"/>.
+    /// <summary>
+    /// Returns <see cref="AsyncData{T}.Data"/> if <paramref name="source"/> is
+    /// an <see cref="AsyncData{T}"/>.<br/>
+    /// Otherwise, calls and returns the result of <paramref name="defaultFn"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="source">The source of the async data.</param>
+    /// <param name="defaultFn">
+    /// Callback to obtain a result when <see cref="AsyncLoading{T}"/> or
+    /// <see cref="AsyncError{T}"/>.
+    /// </param>
+    /// <returns>
+    /// <see cref="AsyncData{T}.Data"/> if <paramref name="source"/> is an
+    /// <see cref="AsyncData{T}"/>; otherwise, calls and returns the result of
+    /// <paramref name="defaultFn"/>.
+    /// </returns>
+    /// <remarks>
+    /// See also <see cref="DataOrElse{T}(AsyncValue{T}, Func{T})"/>, which will
+    /// always return any <c>Data</c>/<c>PreviousData</c> contained within the
+    /// <see cref="AsyncValue{T}"/>.
+    /// </remarks>
     public static T UnwrapOrElse<T>(
         this AsyncValue<T> source,
         Func<T> defaultFn)
@@ -68,50 +105,95 @@ public static class AsyncValueConvenienceExtensions
         };
     }
 
-    /// Returns *any* data contained within this <see cref="AsyncValue{T}"/>,
-    /// including `previousData` for the [AsyncLoading] and [AsyncError] cases.
-    ///
-    /// Returns [AsyncData.data] if `this` is an [AsyncData].
-    /// Returns the value contained in [AsyncLoading.previousData] if `this` is
-    /// an [AsyncLoading] and [AsyncLoading.previousData] is [Some].
-    /// Returns the value contained in [AsyncError.previousData] if `this` is
-    /// an [AsyncError] and [AsyncError.previousData] is [Some].
-    /// Otherwise, returns [defaultValue].
-    ///
-    /// See also [unwrapOr], which will only return the value
-    /// on the [AsyncData] case.
+    /// <summary>
+    /// Returns <i>any</i> data contained within this
+    /// <see cref="AsyncValue{T}"/>, including <c>PreviousData</c> for the
+    /// <see cref="AsyncLoading{T}"/> and <see cref="AsyncError{T}"/> cases.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="source">The source of the async data.</param>
+    /// <param name="defaultValue">
+    /// Default value when <see cref="None{T}"/>.
+    /// </param>
+    /// <returns>
+    /// <see cref="AsyncData{T}.Data"/> if <paramref name="source"/> is an
+    /// <see cref="AsyncData{T}"/>.<br/>
+    /// The value contained in <see cref="AsyncLoading{T}.PreviousData"/> if
+    /// <paramref name="source"/> is
+    /// an <see cref="AsyncLoading{T}"/> and
+    /// <see cref="AsyncLoading{T}.PreviousData"/> is <see cref="Just{T}"/>.
+    /// <br/>
+    /// The value contained in <see cref="AsyncError{T}.PreviousData"/> if
+    /// <paramref name="source"/> is an <see cref="AsyncError{T}"/> and
+    /// <see cref="AsyncError{T}.PreviousData"/> is <see cref="Just{T}"/>.<br/>
+    /// Otherwise, <paramref name="defaultValue"/>.
+    /// </returns>
+    /// <remarks>
+    /// See also <see cref="UnwrapOr{T}(AsyncValue{T}, T)"/>, which will only
+    /// return the value on the <see cref="AsyncData{T}"/> case.
+    /// </remarks>
     public static T DataOr<T>(
         this AsyncValue<T> source,
         T defaultValue) => source.GetData().UnwrapOr(defaultValue);
 
-    /// Returns *any* data contained within this <see cref="AsyncValue{T}"/>,
-    /// including `previousData` for the [AsyncLoading] and [AsyncError] cases.
-    ///
-    /// Returns [AsyncData.data] if `this` is an [AsyncData].
-    /// Returns the value contained in [AsyncLoading.previousData] if `this` is
-    /// an [AsyncLoading] and [AsyncLoading.previousData] is [Some].
-    /// Returns the value contained in [AsyncError.previousData] if `this` is
-    /// an [AsyncError] and [AsyncError.previousData] is [Some].
-    /// Otherwise, calls and returns the result of [defaultFn].
-    ///
-    /// See also [unwrapOrElse], which will only return the value
-    /// on the [AsyncData] case.
+    /// <summary>
+    /// Returns <i>any</i> data contained within this
+    /// <see cref="AsyncValue{T}"/>, including <c>PreviousData</c> for the
+    /// <see cref="AsyncLoading{T}"/> and <see cref="AsyncError{T}"/> cases.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="source">The source of the async data.</param>
+    /// <param name="defaultFn">
+    /// Callback to obtain a result (when <see cref="None{T}"/>).
+    /// </param>
+    /// <returns>
+    /// <see cref="AsyncData{T}.Data"/> if <paramref name="source"/> is an
+    /// <see cref="AsyncData{T}"/>.
+    /// the value contained in <see cref="AsyncLoading{T}.PreviousData"/> if
+    /// <paramref name="source"/> is
+    /// an <see cref="AsyncLoading{T}"/> and
+    /// <see cref="AsyncLoading{T}.PreviousData"/> is <see cref="Just{T}"/>.
+    /// the value contained in <see cref="AsyncError{T}.PreviousData"/> if
+    /// <paramref name="source"/> is an <see cref="AsyncError{T}"/> and
+    /// <see cref="AsyncError{T}.PreviousData"/> is <see cref="Just{T}"/>.
+    /// Otherwise, calls and returns the result of <paramref name="defaultFn"/>.
+    /// </returns>
+    /// <remarks>
+    /// See also <see cref="UnwrapOrElse{T}(AsyncValue{T}, Func{T})"/>, which
+    /// will only return the value on the <see cref="AsyncData{T}"/> case.
+    /// </remarks>
     public static T DataOrElse<T>(
         this AsyncValue<T> source,
         Func<T> defaultFn) => source.GetData().UnwrapOrElse(defaultFn);
 
-    /// Fills in the [AsyncLoading.previousData] or [AsyncError.previousData] with
-    /// [newPreviousData] if [AsyncLoading.previousData] or
-    /// [AsyncError.previousData] are [None].
-    /// If [AsyncLoading.previousData] or [AsyncError.previousData] are [Some],
-    /// then [newPreviousData] will not be filled in.
+    /// <summary>
+    /// Fills in the <see cref="AsyncLoading{T}.PreviousData"/> or
+    /// <see cref="AsyncError{T}.PreviousData"/> with
+    /// <paramref name="newPreviousData"/> if
+    /// <see cref="AsyncLoading{T}.PreviousData"/> or
+    /// <see cref="AsyncError{T}.PreviousData"/> are <see cref="None{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="source">The source of the async data.</param>
+    /// <param name="newPreviousData">
+    /// Data to fill in if none already.
+    /// </param>
+    /// <returns>
+    /// <see cref="AsyncValue{T}"/> with data filled in.
+    /// </returns>
+    /// <remarks>
+    /// If <see cref="AsyncLoading{T}.PreviousData"/> or
+    /// <see cref="AsyncError{T}.PreviousData"/> are <see cref="Just{T}"/>, then
+    /// <paramref name="newPreviousData"/> will not be filled in.
+    /// </remarks>
     public static AsyncValue<T> FillInPreviousData<T>(
         this AsyncValue<T> source,
         Maybe<T> newPreviousData)
     {
         return source switch
         {
-            AsyncLoading<T> { PreviousData: None<T> } => new AsyncLoading<T>(newPreviousData),
+            AsyncLoading<T> { PreviousData: None<T> } =>
+                new AsyncLoading<T>(newPreviousData),
             AsyncError<T> { PreviousData: None<T> } asyncError =>
                 new AsyncError<T>(asyncError.Error, newPreviousData),
             _ => source,
