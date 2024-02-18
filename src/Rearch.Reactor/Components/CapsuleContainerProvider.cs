@@ -10,14 +10,14 @@ using MauiReactor.Parameters;
 /// <summary>
 /// Provides a <see cref="CapsuleContainer"/> to the rest of the
 /// <see cref="Component"/> tree using an <see cref="IParameter"/>.
-/// <br/>
-/// <br/>
+/// </summary>
+/// <typeparam name="TComponent">Type of root component.</typeparam>
+/// <remarks>
 /// Does not manage the lifecycle of the supplied
 /// <see cref="CapsuleContainer"/>. You typically should
 /// <see cref="MauiAppBuilderExtensions.UseRearchReactorApp{TComponent}(MauiAppBuilder, Action{MauiReactor.ReactorApplication}?)"/>
 /// instead.
-/// </summary>
-/// <typeparam name="TComponent">Type of root component.</typeparam>
+/// </remarks>
 internal sealed partial class CapsuleContainerProvider<TComponent> : Component
     where TComponent : CapsuleConsumer, new()
 {

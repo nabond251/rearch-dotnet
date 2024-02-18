@@ -6,13 +6,15 @@ namespace Rearch;
 
 /// <summary>
 /// Represents a side effect.
-/// See the documentation for more.
 /// </summary>
 /// <typeparam name="T">Type of side effect result.</typeparam>
 /// <param name="sideEffectApi">
 /// The API to create this side effect's state.
 /// </param>
 /// <returns>Side effect result.</returns>
+/// <remarks>
+/// See the documentation for more.
+/// </remarks>
 public delegate T SideEffect<out T>(ISideEffectApi sideEffectApi);
 
 /// <summary>

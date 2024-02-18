@@ -7,10 +7,11 @@ namespace Rearch.Reactor.Components;
 using MauiReactor;
 
 /// <summary>
-/// This is needed so that <see cref="ISideEffectApi.Rebuild"/> doesn't
-/// conflict with <see cref="Component.Render()"/>.
+/// This is needed so that <see cref="ISideEffectApi.Rebuild"/> doesn't conflict
+/// with <see cref="Component.Render()"/>.
 /// </summary>
-internal sealed class ComponentSideEffectApi(CapsuleConsumer manager) : ISideEffectApi
+internal sealed class ComponentSideEffectApi(CapsuleConsumer manager) :
+    ISideEffectApi
 {
     /// <summary>
     /// Gets component consuming capsule's data.
