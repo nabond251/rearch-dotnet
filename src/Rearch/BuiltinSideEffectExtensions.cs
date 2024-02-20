@@ -4,6 +4,9 @@
 
 namespace Rearch;
 
+using System.Reactive.Threading.Tasks;
+using Rearch.Types;
+
 /// <summary>
 /// A reducer function that consumes some <typeparamref name="TState"/> and
 /// <typeparamref name="TAction"/> and returns a new, transformed
@@ -271,6 +274,106 @@ public static class BuiltinSideEffectExtensions
         return (
             currState,
             (action) => setState(reducer(currState, action)));
+    }
+
+    /// <summary>
+    /// Consumes a <see cref="System.Threading.Tasks.Task{T}"/> and watches the
+    /// given <paramref name="task"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="task">The task to wrap.</param>
+    /// <returns>
+    /// An <see cref="AsyncValue{T}"/> wrapping the given
+    /// <paramref name="task"/>.
+    /// </returns>
+    /// <remarks>
+    /// Implemented by calling
+    /// <see cref="TaskObservableExtensions.ToObservable(Task)"/> and forwarding
+    /// calls onto <see cref="Observable"/>.<br/>
+    /// <br/>
+    /// If the given task changes, then the current <see cref="IDisposable"/>
+    /// will be disposed and recreated for the new task.<br/>
+    /// Thus, it is important that the task instance only changes when needed.
+    /// It is incorrect to create a task in the same build as the
+    /// <paramref name="task"/>, unless you use something like
+    /// <see cref="Memo"/> to limit changes.<br/>
+    /// Or, if possible, it is even better to wrap the task in an entirely
+    /// new capsule (although this is not always possible).
+    /// </remarks>
+    public static AsyncValue<T> Task<T>(
+        this ISideEffectRegistrar registrar,
+        Task<T> task)
+    {
+        var toObservable = registrar.Memo(
+            task.ToObservable,
+            new List<object?> { task });
+        return registrar.Observable(toObservable);
+    }
+
+    /// <summary>
+    /// Consumes an <see cref="IObservable{T}"/> and watches the given
+    /// observable.
+    /// </summary>
+    /// <typeparam name="T">Type of observable data.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="observable">The observable to wrap.</param>
+    /// <returns>
+    /// An <see cref="AsyncValue{T}"/> wrapping the given
+    /// <paramref name="observable"/>.
+    /// </returns>
+    /// <remarks>
+    /// If the given observable changes between build calls, then the current
+    /// <see cref="IDisposable"/> will be disposed and recreated for the new
+    /// observable.<br/>
+    /// Thus, it is important that the observable instance only changes when
+    /// needed. It is incorrect to create a observable in the same build as the
+    /// <paramref name="observable"/>, unless you use something like
+    /// <see cref="Memo"/> to limit changes.<br/>
+    /// Or, if possible, it is even better to wrap the observable in an entirely
+    /// new capsule (although this is not always possible).
+    /// </remarks>
+    public static AsyncValue<T> Observable<T>(
+        this ISideEffectRegistrar registrar,
+        IObservable<T> observable)
+    {
+        var rebuild = registrar.Rebuilder();
+        var (getValue, setValue) = registrar.RawValueWrapper<AsyncValue<T>>(
+            () => new AsyncLoading<T>(new None<T>()));
+
+        var (getSubscription, setSubscription) =
+            registrar.RawValueWrapper<IDisposable?>(() => null);
+        registrar.Effect(
+            () =>
+            {
+                var subscription = getSubscription();
+                return subscription is null ?
+                    () => { } :
+                    new Action(subscription.Dispose);
+            },
+            new List<object?> { getSubscription() });
+
+        var oldObservable = registrar.Previous(observable);
+        var needToInitializeState = observable != oldObservable;
+
+        if (needToInitializeState)
+        {
+            setValue(new AsyncLoading<T>(getValue().GetData()));
+            setSubscription(
+                observable.Subscribe(
+                    data =>
+                    {
+                        setValue(new AsyncData<T>(data));
+                        rebuild();
+                    },
+                    onError: error =>
+                    {
+                        setValue(new AsyncError<T>(error, getValue().GetData()));
+                        rebuild();
+                    }));
+        }
+
+        return getValue();
     }
 
     // TODO(nabond251): other side effects
