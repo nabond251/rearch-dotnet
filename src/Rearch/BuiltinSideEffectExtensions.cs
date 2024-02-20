@@ -17,7 +17,9 @@ using Rearch.Types;
 /// <param name="state">State to consume.</param>
 /// <param name="action">Action to consume.</param>
 /// <returns>Reduced state.</returns>
-public delegate TState Reducer<TState, in TAction>(TState state, TAction action);
+public delegate TState Reducer<TState, in TAction>(
+    TState state,
+    TAction action);
 
 /// <summary>
 /// A collection of builtin side effects.
@@ -265,7 +267,8 @@ public static class BuiltinSideEffectExtensions
     /// <param name="reducer">Reducer function.</param>
     /// <param name="initialState">Initial reducer state.</param>
     /// <returns>Reducer state and action dispatcher.</returns>
-    public static (TState State, Action<TAction> Dispatch) Reducer<TState, TAction>(
+    public static (TState State, Action<TAction> Dispatch)
+        Reducer<TState, TAction>(
         this ISideEffectRegistrar registrar,
         Reducer<TState, TAction> reducer,
         TState initialState)
@@ -368,7 +371,8 @@ public static class BuiltinSideEffectExtensions
                     },
                     onError: error =>
                     {
-                        setValue(new AsyncError<T>(error, getValue().GetData()));
+                        setValue(
+                            new AsyncError<T>(error, getValue().GetData()));
                         rebuild();
                     }));
         }
@@ -391,11 +395,14 @@ public static class BuiltinSideEffectExtensions
     /// See the docs for usage information.<br/>
     /// <br/>
     /// Defines the way to interact with a storage provider of your choice
-    /// through the <paramref name="read"/> and <paramref name="write"/> parameters.<br/>
+    /// through the <paramref name="read"/> and <paramref name="write"/>
+    /// parameters.<br/>
     /// <br/>
-    /// <paramref name="read"/> is only called once; it is assumed that if <paramref name="write"/> is successful,
-    /// then calling <paramref name="read"/> again would reflect the new state that we already
-    /// have access to. Thus, calling <paramref name="read"/> again is skipped as an optimization.
+    /// <paramref name="read"/> is only called once; it is assumed that if
+    /// <paramref name="write"/> is successful, then calling
+    /// <paramref name="read"/> again would reflect the new state that we
+    /// already have access to. Thus, calling <paramref name="read"/> again is
+    /// skipped as an optimization.
     /// </remarks>
     public static (AsyncValue<T> State, Action<T> Persist) Persist<T>(
         this ISideEffectRegistrar registrar,
@@ -422,9 +429,9 @@ public static class BuiltinSideEffectExtensions
     }
 
     /// <summary>
-    /// Allows you to trigger and watch <see cref="System.Threading.Tasks.Task"/>s
-    /// (called mutations, since they often mutate some state)
-    /// from within the build function.
+    /// Allows you to trigger and watch
+    /// <see cref="System.Threading.Tasks.Task"/>s (called mutations, since they
+    /// often mutate some state) from within the build function.
     /// </summary>
     /// <typeparam name="T">Type of mutated data.</typeparam>
     /// <param name="registrar">Side effect registrar.</param>
@@ -440,18 +447,22 @@ public static class BuiltinSideEffectExtensions
     public static Mutation<T> Mutation<T>(this ISideEffectRegistrar registrar)
     {
         var rebuild = registrar.Rebuilder();
-        var (getValue, setValue) = registrar.RawValueWrapper<AsyncValue<T>?>(() => null);
+        var (getValue, setValue) = registrar.RawValueWrapper<AsyncValue<T>?>(
+            () => null);
 
         // We convert to a stream here because we can cancel a stream
         // subscription; there is no builtin way to cancel a future.
         var (future, setFuture) = registrar.State<Task<T>?>(null);
-        var asStream = registrar.Memo(() => future?.ToObservable(), new List<object?> { future });
+        var asStream = registrar.Memo(
+            () => future?.ToObservable(),
+            new List<object?> { future });
 
         registrar.Effect(
             () =>
             {
                 setValue(
-                    asStream == null ? null : new AsyncLoading<T>(getValue()?.GetData() ?? new None<T>()));
+                    asStream == null ? null : new AsyncLoading<T>(
+                        getValue()?.GetData() ?? new None<T>()));
 
                 var subscription = asStream?.Subscribe(
                     data =>
@@ -462,7 +473,9 @@ public static class BuiltinSideEffectExtensions
                     onError: error =>
                     {
                         setValue(
-                            new AsyncError<T>(error, getValue()?.GetData() ?? new None<T>()));
+                            new AsyncError<T>(
+                                error,
+                                getValue()?.GetData() ?? new None<T>()));
                         rebuild();
                     });
 
