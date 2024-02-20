@@ -376,7 +376,105 @@ public static class BuiltinSideEffectExtensions
         return getValue();
     }
 
-    // TODO(nabond251): other side effects
+    /// <summary>
+    /// A mechanism to persist changes made in state.
+    /// </summary>
+    /// <typeparam name="T">Type of persisted data.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <param name="read">How to read data from the storage provider.</param>
+    /// <param name="write">How to write data to the storage provider.</param>
+    /// <returns>
+    /// An <see cref="AsyncValue{T}"/> representing the persisted data, and an
+    /// action to persist the data.
+    /// </returns>
+    /// <remarks>
+    /// See the docs for usage information.<br/>
+    /// <br/>
+    /// Defines the way to interact with a storage provider of your choice
+    /// through the <paramref name="read"/> and <paramref name="write"/> parameters.<br/>
+    /// <br/>
+    /// <paramref name="read"/> is only called once; it is assumed that if <paramref name="write"/> is successful,
+    /// then calling <paramref name="read"/> again would reflect the new state that we already
+    /// have access to. Thus, calling <paramref name="read"/> again is skipped as an optimization.
+    /// </remarks>
+    public static (AsyncValue<T> State, Action<T> Persist) Persist<T>(
+        this ISideEffectRegistrar registrar,
+        Func<Task<T>> read,
+        Func<T, Task> write)
+    {
+        var readFuture = registrar.InvokeOnce(read);
+        var readState = registrar.Task(readFuture);
+        var (writeState, mutate, _) = registrar.Mutation<T>();
+
+        var state = (writeState ?? readState).FillInPreviousData(
+            readState.GetData());
+
+        void Persist(T data)
+        {
+            mutate(new Func<Task<T>>(async () =>
+            {
+                await write(data);
+                return data;
+            })());
+        }
+
+        return (state, Persist);
+    }
+
+    /// <summary>
+    /// Allows you to trigger and watch <see cref="System.Threading.Tasks.Task"/>s
+    /// (called mutations, since they often mutate some state)
+    /// from within the build function.
+    /// </summary>
+    /// <typeparam name="T">Type of mutated data.</typeparam>
+    /// <param name="registrar">Side effect registrar.</param>
+    /// <returns>
+    /// A <see cref="Mutation"/> for data of type <typeparamref name="T"/>.
+    /// </returns>
+    /// <remarks>
+    /// See the documentation for more.<br/>
+    /// <br/>
+    /// Note: `mutate()` and `clear()` *should not* be called directly from
+    /// within build, but rather from within some callback.
+    /// </remarks>
+    public static Mutation<T> Mutation<T>(this ISideEffectRegistrar registrar)
+    {
+        var rebuild = registrar.Rebuilder();
+        var (getValue, setValue) = registrar.RawValueWrapper<AsyncValue<T>?>(() => null);
+
+        // We convert to a stream here because we can cancel a stream
+        // subscription; there is no builtin way to cancel a future.
+        var (future, setFuture) = registrar.State<Task<T>?>(null);
+        var asStream = registrar.Memo(() => future?.ToObservable(), new List<object?> { future });
+
+        registrar.Effect(
+            () =>
+            {
+                setValue(
+                    asStream == null ? null : new AsyncLoading<T>(getValue()?.GetData() ?? new None<T>()));
+
+                var subscription = asStream?.Subscribe(
+                    data =>
+                    {
+                        setValue(new AsyncData<T>(data));
+                        rebuild();
+                    },
+                    onError: error =>
+                    {
+                        setValue(
+                            new AsyncError<T>(error, getValue()?.GetData() ?? new None<T>()));
+                        rebuild();
+                    });
+
+                return new Action(() => subscription?.Dispose());
+            },
+            new List<object?> { asStream });
+
+        return new Mutation<T>(
+            State: getValue(),
+            Mutate: setFuture,
+            Clear: () => setFuture(null));
+    }
 
     /// <summary>
     /// Checks to see whether <paramref name="newDeps"/> has changed from
