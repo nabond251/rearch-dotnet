@@ -48,7 +48,8 @@ internal abstract class DataflowGraphNode : IDisposable
     }
 
     /// <summary>
-    /// Updates node data and propogates any changes to other associated nodes in the network.
+    /// Updates node data and propogates any changes to other associated nodes
+    /// in the network.
     /// </summary>
     internal void BuildSelfAndDependents()
     {
@@ -152,7 +153,8 @@ internal abstract class DataflowGraphNode : IDisposable
 
             if (hasVisitedBefore)
             {
-                // Already processed this node's dependents, so add to build order
+                // Already processed this node's dependents, so add to build
+                // order
                 buildOrderStack.Add(node);
             }
             else

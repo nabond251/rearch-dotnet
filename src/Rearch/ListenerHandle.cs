@@ -7,9 +7,11 @@ namespace Rearch;
 /// <summary>
 /// A handle onto the lifecycle of a listener from
 /// <see cref="CapsuleContainer.Listen(CapsuleListener)"/>.
+/// </summary>
+/// <remarks>
 /// You <i>must</i> <see cref="Dispose()"/> the <see cref="ListenerHandle"/>
 /// when you no longer need the listener in order to prevent leaks.
-/// </summary>
+/// </remarks>
 public class ListenerHandle : IDisposable
 {
     private readonly CapsuleContainer container;
@@ -20,7 +22,9 @@ public class ListenerHandle : IDisposable
     /// </summary>
     /// <param name="container">Container containing listener's data.</param>
     /// <param name="capsule">Capsule whose data to listen to.</param>
-    internal ListenerHandle(CapsuleContainer container, Capsule<object?> capsule)
+    internal ListenerHandle(
+        CapsuleContainer container,
+        Capsule<object?> capsule)
     {
         this.container = container;
         this.capsule = capsule;

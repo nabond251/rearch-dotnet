@@ -36,7 +36,8 @@ public abstract partial class CapsuleConsumer : Component
     /// <inheritdoc/>
     public sealed override VisualNode Render()
     {
-        this.ClearHandles(); // listeners will be repopulated via ComponentHandle
+        // listeners will be repopulated via ComponentHandle
+        this.ClearHandles();
 
         var container = this.containerParameter.Value.Container;
         Debug.Assert(

@@ -8,11 +8,13 @@ namespace Rearch;
 
 /// <summary>
 /// A blueprint for creating some data, given a <see cref="ICapsuleHandle"/>.
-/// See the documentation for more.
 /// </summary>
 /// <typeparam name="T">Type of encapsulated data.</typeparam>
 /// <param name="handle">Capsule handle.</param>
 /// <returns>Encapsulated data.</returns>
+/// <remarks>
+/// See the documentation for more.
+/// </remarks>
 public delegate T Capsule<out T>(ICapsuleHandle handle);
 
 /// <summary>
@@ -27,13 +29,14 @@ public delegate void CapsuleListener(ICapsuleReader capsuleReader);
 /// Defines what a <see cref="SideEffect{T}"/> should look like (a
 /// <see cref="Func{T, TResult}"/> that consumes an
 /// <see cref="ISideEffectApi"/> and returns something).
-///
+/// </summary>
+/// <remarks>
 /// If your side effect is more advanced or requires parameters,
 /// simply make a callable class instead of just a regular
-/// <see cref="Func{T, TResult}"/>!
-///
+/// <see cref="Func{T, TResult}"/>!<br/>
+/// <br/>
 /// See the documentation for more.
-/// </summary>
+/// </remarks>
 public class CapsuleContainer : IDisposable
 {
     private readonly Dictionary<
@@ -43,7 +46,8 @@ public class CapsuleContainer : IDisposable
     /// <summary>
     /// Gets map of container to manager.
     /// </summary>
-    internal Dictionary<object, UntypedCapsuleManager> Capsules => this.capsules;
+    internal Dictionary<object, UntypedCapsuleManager> Capsules =>
+        this.capsules;
 
     /// <summary>
     /// Reads the current data of the supplied <see cref="Capsule{T}"/>.
@@ -57,21 +61,22 @@ public class CapsuleContainer : IDisposable
     /// <summary>
     /// <i>Temporarily</i> listens to changes in a given set of
     /// <see cref="Capsule{T}"/>s.
-    /// If you want to listen to capsule(s) <i>not temporarily</i>,
-    /// instead just make an impure capsule and
-    /// <see cref="Read{T}(Capsule{T})"/> it once to initialize it.
-    /// <c>Listen</c> calls the supplied listener immediately,
-    /// and then after any capsules its listening to change.
     /// </summary>
     /// <param name="listener">Capsule listener.</param>
     /// <returns>Listener handle to dispose when done listening.</returns>
     /// <remarks>
-    /// <see cref="ListenerHandle"/> will leak its listener if it is not disposed.
+    /// If you want to listen to capsule(s) <i>not temporarily</i>,
+    /// instead just make an impure capsule and
+    /// <see cref="Read{T}(Capsule{T})"/> it once to initialize it.<br/>
+    /// <c>Listen</c> calls the supplied listener immediately,
+    /// and then after any capsules its listening to change.<br/>
+    /// <note><see cref="ListenerHandle"/> will leak its listener if it is not
+    /// disposed.</note>
     /// </remarks>
     public ListenerHandle Listen(CapsuleListener listener)
     {
-        // Create a temporary *impure* capsule so that it doesn't get super-pure
-        // garbage collected
+        // Create a temporary *impure* capsule so that it doesn't get
+        // super-pure garbage collected
         object Capsule(ICapsuleHandle use)
         {
             use.Register(_ => new object());
@@ -119,7 +124,8 @@ public class CapsuleContainer : IDisposable
     {
         if (disposing)
         {
-            // We need ToList() to prevent container modification during iteration
+            // We need ToList() to prevent container modification during
+            // iteration
             foreach (var manager in this.Capsules.Values.ToList())
             {
                 manager.Dispose();

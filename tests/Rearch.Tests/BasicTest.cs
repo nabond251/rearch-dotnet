@@ -236,7 +236,8 @@ public class BasicTest
             }
             else
             {
-                builds[(object)UnchangingWatcher] = builds[(object)UnchangingWatcher] + 1;
+                builds[(object)UnchangingWatcher] =
+                    builds[(object)UnchangingWatcher] + 1;
             }
 
             return use.Invoke(UnchangingSuperPureDep);

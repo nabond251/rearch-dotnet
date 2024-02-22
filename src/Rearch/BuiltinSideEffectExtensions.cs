@@ -44,10 +44,6 @@ public static class BuiltinSideEffectExtensions
 
     /// <summary>
     /// Returns a raw value wrapper; i.e., a getter and setter for some value.
-    /// <i>The setter will not trigger rebuilds</i>.
-    /// The initial state will be set to the result of running
-    /// <paramref name="init"/>, if it was provided. Otherwise, you must
-    /// manually set it via the setter before ever calling the getter.
     /// </summary>
     /// <typeparam name="T">Type of raw value.</typeparam>
     /// <param name="registrar">Side effect registrar.</param>
@@ -55,6 +51,12 @@ public static class BuiltinSideEffectExtensions
     /// <returns>
     /// A raw value wrapper; i.e., a getter and setter for some value.
     /// </returns>
+    /// <remarks>
+    /// <i>The setter will not trigger rebuilds</i>.<br/>
+    /// The initial state will be set to the result of running
+    /// <paramref name="init"/>, if it was provided. Otherwise, you must
+    /// manually set it via the setter before ever calling the getter.
+    /// </remarks>
     public static (Func<T> Getter, Action<T> Setter) RawValueWrapper<T>(
         this ISideEffectRegistrar registrar,
         Func<T>? init = null)
@@ -74,13 +76,15 @@ public static class BuiltinSideEffectExtensions
     /// <summary>
     /// Side effect that provides a way for capsules to contain some state,
     /// where the initial state is computationally expensive.
-    /// Similar to the <c>useState</c> hook from React;
-    /// see https://react.dev/reference/react/useState.
     /// </summary>
     /// <typeparam name="T">Type of side effect state.</typeparam>
     /// <param name="registrar">Side effect registrar.</param>
     /// <param name="init">Callback to initialize side effect state.</param>
     /// <returns>Side effect state and setter.</returns>
+    /// <remarks>
+    /// Similar to the <c>useState</c> hook from React;
+    /// see https://react.dev/reference/react/useState.
+    /// </remarks>
     public static (T State, Action<T> SetState) LazyState<T>(
         this ISideEffectRegistrar registrar,
         Func<T> init)
@@ -106,13 +110,15 @@ public static class BuiltinSideEffectExtensions
 
     /// <summary>
     /// Side effect that provides a way for capsules to contain some state.
-    /// Similar to the <c>useState</c> hook from React;
-    /// see https://react.dev/reference/react/useState.
     /// </summary>
     /// <typeparam name="T">Type of side effect state.</typeparam>
     /// <param name="registrar">Side effect registrar.</param>
     /// <param name="initial">Initial side effect state.</param>
     /// <returns>Side effect state and setter.</returns>
+    /// <remarks>
+    /// Similar to the <c>useState</c> hook from React;
+    /// see https://react.dev/reference/react/useState.
+    /// </remarks>
     public static (T State, Action<T> SetState) State<T>(
         this ISideEffectRegistrar registrar,
         T initial) =>
@@ -121,13 +127,17 @@ public static class BuiltinSideEffectExtensions
     /// <summary>
     /// Side effect that provides a way for capsules to hold onto some value
     /// between builds, where the initial value is computationally expensive.
-    /// Similar to the <c>useRef</c> hook from React;
-    /// see https://react.dev/reference/react/useRef.
     /// </summary>
     /// <typeparam name="T">Type of side effect lazy value.</typeparam>
     /// <param name="registrar">Side effect registrar.</param>
-    /// <param name="init">Callback to initialize side effect lazy value.</param>
+    /// <param name="init">
+    /// Callback to initialize side effect lazy value.
+    /// </param>
     /// <returns>Side effect lazy value.</returns>
+    /// <remarks>
+    /// Similar to the <c>useRef</c> hook from React;
+    /// see https://react.dev/reference/react/useRef.
+    /// </remarks>
     public static T LazyValue<T>(
         this ISideEffectRegistrar registrar,
         Func<T> init) =>
@@ -136,13 +146,15 @@ public static class BuiltinSideEffectExtensions
     /// <summary>
     /// Side effect that provides a way for capsules to hold onto some value
     /// between builds.
-    /// Similar to the <c>useRef</c> hook from React;
-    /// see https://react.dev/reference/react/useRef.
     /// </summary>
     /// <typeparam name="T">Type of side effect value.</typeparam>
     /// <param name="registrar">Side effect registrar.</param>
     /// <param name="initial">Initial side effect value.</param>
     /// <returns>Side effect value.</returns>
+    /// <remarks>
+    /// Similar to the <c>useRef</c> hook from React;
+    /// see https://react.dev/reference/react/useRef.
+    /// </remarks>
     public static T Value<T>(
         this ISideEffectRegistrar registrar,
         T initial) =>
@@ -169,13 +181,15 @@ public static class BuiltinSideEffectExtensions
 
     /// <summary>
     /// Equivalent to the `useMemo` hook from React.
-    /// See https://react.dev/reference/react/useMemo.
     /// </summary>
     /// <typeparam name="T">Type of side effect value.</typeparam>
     /// <param name="registrar">Side effect registrar.</param>
     /// <param name="memo">Memoization function to obtain value.</param>
     /// <param name="dependencies">Dependencies to trigger update.</param>
     /// <returns>Memoized value.</returns>
+    /// <remarks>
+    /// See https://react.dev/reference/react/useMemo.
+    /// </remarks>
     public static T Memo<T>(
         this ISideEffectRegistrar registrar,
         Func<T> memo,
@@ -194,11 +208,13 @@ public static class BuiltinSideEffectExtensions
 
     /// <summary>
     /// Equivalent to the `useEffect` hook from React.
-    /// See https://react.dev/reference/react/useEffect.
     /// </summary>
     /// <param name="registrar">Side effect registrar.</param>
     /// <param name="effect">Effect callback.</param>
     /// <param name="dependencies">Dependencies to trigger effect.</param>
+    /// <remarks>
+    /// See https://react.dev/reference/react/useEffect.
+    /// </remarks>
     public static void Effect(
         this ISideEffectRegistrar registrar,
         Func<Action?> effect,
