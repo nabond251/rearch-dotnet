@@ -31,12 +31,12 @@ partial class MainPage : CapsuleConsumer
             },
             UpdateTodo: todo =>
             {
-                _modelContext.Update(todo);
+                _modelContext.Replace(todo, new Todo { Id = todo.Id, Task = todo.Task, Done = todo.Done });
                 _modelContext.Save();
             },
             DeleteTodos: todos =>
             {
-                _modelContext.DeleteRange(todos);
+                _modelContext.Delete([..todos]);
                 _modelContext.Save();
             });
 
