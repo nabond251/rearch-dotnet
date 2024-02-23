@@ -31,12 +31,12 @@ partial class MainPage : CapsuleConsumer
             },
             UpdateTodo: todo =>
             {
-                _modelContext.Update(todo);
+                _modelContext.Replace(todo, new Todo { Id = todo.Id, Task = todo.Task, Done = todo.Done });
                 _modelContext.Save();
             },
             DeleteTodos: todos =>
             {
-                _modelContext.DeleteRange(todos);
+                _modelContext.Delete([..todos]);
                 _modelContext.Save();
             });
 
@@ -55,30 +55,61 @@ partial class MainPage : CapsuleConsumer
 
         return ContentPage(
             Grid("Auto, *, Auto", "*",
-                TodoEditor(i => OnCreatedNewTask(i, use)),
+                new TodoEditor(OnCreatedNewTask),
 
                 CollectionView()
-                    .ItemsSource(todoItems, i => RenderItem(i, use))
+                    .ItemsSource(todoItems, i => new Item(i, OnItemDoneChanged))
                     .GridRow(1),
 
                 Button("Clear List")
-                    .OnClicked(() => OnClearList(use))
+                    .OnClicked(OnClearList)
                     .GridRow(2)
 
             ));
-    }
 
-    Grid RenderItem(Todo item, ICapsuleHandle use)
+        void OnItemDoneChanged(Todo item, bool done)
+        {
+            var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
+
+            item.Done = done;
+
+            UpdateTodo(item);
+        }
+
+        void OnCreatedNewTask(Todo todo)
+        {
+            var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
+
+            AddTodo(todo);
+        }
+
+        void OnClearList()
+        {
+            var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
+
+            var todoItems = use.Invoke(TodoItemsCapsule);
+
+            DeleteTodos(todoItems);
+        }
+    }
+}
+
+internal class Item(Todo item, Action<Todo, bool> onItemDoneChanged) : CapsuleConsumer
+{
+    public override Grid Render(ICapsuleHandle use)
         => Grid("54", "Auto, *",
             CheckBox()
                 .IsChecked(item.Done)
-                .OnCheckedChanged((s, args) => OnItemDoneChanged(item, args.Value, use)),
+                .OnCheckedChanged((s, args) => onItemDoneChanged(item, args.Value)),
             Label(item.Task)
                 .TextDecorations(item.Done ? TextDecorations.Strikethrough : TextDecorations.None)
                 .VCenter()
                 .GridColumn(1));
+}
 
-    static VisualNode TodoEditor(Action<Todo> created)
+internal class TodoEditor(Action<Todo> created) : CapsuleConsumer
+{
+    public override VisualNode Render(ICapsuleHandle use)
         => Render<string>(state =>
             Grid("*", "*,Auto",
                 Entry()
@@ -88,34 +119,14 @@ partial class MainPage : CapsuleConsumer
                     .GridColumn(1)
                     .OnClicked(() =>
                     {
-                        created(new Todo { Task = state.Value ?? "New Task" });
+                        created(new Todo
+                        {
+                            Task = string.IsNullOrEmpty(state.Value) ?
+                                "New Task" :
+                                state.Value
+                        });
                         state.Set(s => string.Empty);
                     })
                 )
             );
-
-    void OnItemDoneChanged(Todo item, bool done, ICapsuleHandle use)
-    {
-        var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
-
-        item.Done = done;
-
-        UpdateTodo(item);
-    }
-
-    void OnCreatedNewTask(Todo todo, ICapsuleHandle use)
-    {
-        var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
-
-        AddTodo(todo);
-    }
-
-    void OnClearList(ICapsuleHandle use)
-    {
-        var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
-
-        var todoItems = use.Invoke(TodoItemsCapsule);
-
-        DeleteTodos(todoItems);
-    }
 }

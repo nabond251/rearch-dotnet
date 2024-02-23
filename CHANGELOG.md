@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2024-02-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`rearch` - `v0.0.0-dev.3`](#rearch---v000-dev3)
+ - [`flutter_rearch` - `v0.0.0-dev.3`](#flutter_rearch---v000-dev3)
+
+---
+
+#### `rearch` - `v0.0.0-dev.3`
+
+ - **FEAT**: add remaining side effects.
+
+#### `rearch.reactor` - `v0.0.0-dev.3`
+
+ - **FEAT**: add async warm-up.
+
+
 ## 2024-02-08
 
 ### Changes

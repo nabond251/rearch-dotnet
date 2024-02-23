@@ -65,13 +65,13 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Reactor.Maui" Version="2.0.*" />
-    <PackageReference Include="Reactor.Maui.Canvas" Version="2.0.*" />
+    <PackageReference Include="Reactor.Maui" Version="2.0.27" />
+    <PackageReference Include="Reactor.Maui.Canvas" Version="2.0.27" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ReactorData" Version="1.0.3-beta" />
-    <PackageReference Include="ReactorData.Sqlite" Version="1.0.3-beta" />
+    <PackageReference Include="ReactorData" Version="1.0.10-beta" />
+    <PackageReference Include="ReactorData.Sqlite" Version="1.0.10-beta" />
   </ItemGroup>
 
   <ItemGroup>
