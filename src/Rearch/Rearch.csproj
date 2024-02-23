@@ -15,7 +15,10 @@
     <Copyright>Copyright (c) Soli Deo Gloria Apps. All rights reserved.</Copyright>
     <Description>A re-imagined declarative approach to application design and architecture.  C# port of [rearch-dart](https://github.com/GregoryConrad/rearch-dart/).</Description>
 
-    <PackageReleaseNotes>v0.0.0-dev.2
+    <PackageReleaseNotes>v0.0.0-dev.3
+ - FEAT: add remaining side effects.
+
+v0.0.0-dev.2
  - FIX: listener handle will not recreate manager on dispose.
  - FEAT: initial impl of rearch.reactor.
 
@@ -23,7 +26,7 @@ v0.0.0-dev.1
  - FEAT: add == check to skip some rebuilds.
  - FEAT: working mvp.</PackageReleaseNotes>
 
-    <Version>0.0.0-dev.2</Version>
+    <Version>0.0.0-dev.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -54,6 +57,7 @@ v0.0.0-dev.1
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.Reactive" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

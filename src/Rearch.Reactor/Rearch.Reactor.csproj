@@ -15,11 +15,14 @@
     <Copyright>Copyright (c) Soli Deo Gloria Apps. All rights reserved.</Copyright>
     <Description>A re-imagined declarative approach to application design and architecture.  C# port of [rearch-dart](https://github.com/GregoryConrad/rearch-dart/).</Description>
 
-    <PackageReleaseNotes>v0.0.0-dev.2
+    <PackageReleaseNotes>v0.0.0-dev.3
+ - FEAT: add async warm-up.
+
+v0.0.0-dev.2
  - FEAT: initial impl of rearch.reactor.
  - FEAT: working mvp.</PackageReleaseNotes>
 
-    <Version>0.0.0-dev.2</Version>
+    <Version>0.0.0-dev.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Reactor.Maui" Version="2.0.26" />
+    <PackageReference Include="Reactor.Maui" Version="2.0.27" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="9.19.0.84025">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
