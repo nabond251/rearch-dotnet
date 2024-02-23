@@ -119,7 +119,12 @@ internal class TodoEditor(Action<Todo> created) : CapsuleConsumer
                     .GridColumn(1)
                     .OnClicked(() =>
                     {
-                        created(new Todo { Task = state.Value ?? "New Task" });
+                        created(new Todo
+                        {
+                            Task = string.IsNullOrEmpty(state.Value) ?
+                                "New Task" :
+                                state.Value
+                        });
                         state.Set(s => string.Empty);
                     })
                 )
