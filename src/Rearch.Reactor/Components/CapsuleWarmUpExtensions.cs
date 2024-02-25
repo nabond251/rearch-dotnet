@@ -19,6 +19,7 @@ public static class CapsuleWarmUpExtensions
     /// Creates a <see cref="Component"/> from a <see cref="IList{T}"/> of the
     /// current states of some "warm up" <see cref="Capsule{T}"/>s.
     /// </summary>
+    /// <typeparam name="T">Type of async data.</typeparam>
     /// <param name="source">
     /// <see cref="IList{T}"/> of the current states of some "warm up"
     /// <see cref="Capsule{T}"/>s.
@@ -38,21 +39,21 @@ public static class CapsuleWarmUpExtensions
     /// Error, <paramref name="loading"/>, or <paramref name="child"/>
     /// component, based on given states.
     /// </returns>
-    public static Component ToWarmUpComponent(
-        this IList<AsyncValue<dynamic>> source,
-        Func<IList<AsyncError<dynamic>>, Component> errorBuilder,
+    public static Component ToWarmUpComponent<T>(
+        this IList<AsyncValue<T>> source,
+        Func<IList<AsyncError<T>>, Component> errorBuilder,
         Component loading,
         Component child)
     {
         // Check for any errors first
-        var asyncErrors = source.OfType<AsyncError<dynamic>>().ToList();
+        var asyncErrors = source.OfType<AsyncError<T>>().ToList();
         if (asyncErrors.Count > 0)
         {
             return errorBuilder(asyncErrors);
         }
 
         // Check to see if we have any still loading
-        if (source.Any((value) => value is AsyncLoading<dynamic>))
+        if (source.Any((value) => value is AsyncLoading<T>))
         {
             return loading;
         }
