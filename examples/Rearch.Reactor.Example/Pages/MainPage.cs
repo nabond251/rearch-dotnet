@@ -7,38 +7,56 @@ using System.Text;
 using System.Threading.Tasks;
 using Rearch.Reactor.Example.Models;
 using Rearch.Reactor.Components;
+using Microsoft.Extensions.DependencyInjection;
+using Rearch.Types;
 
 namespace Rearch.Reactor.Example.Pages;
 
 partial class MainPage : CapsuleConsumer
 {
-    [Inject]
-    readonly IModelContext _modelContext;
+    private async Task<IModelContext> ContextAsyncCapsule(ICapsuleHandle use) =>
+        await Task.Run(Services.GetRequiredService<IModelContext>);
+
+    private AsyncValue<IModelContext> ContextWarmUpCapsule(ICapsuleHandle use)
+    {
+        var task = use.Invoke(ContextAsyncCapsule);
+        return use.Task(task);
+    }
+
+    private IModelContext ContextCapsule(ICapsuleHandle use) =>
+        use.Invoke(ContextWarmUpCapsule).GetData().UnwrapOrElse(
+            () => throw new InvalidOperationException(
+                "ContextWarmUpCapsule was not warmed up!"));
 
     private IQuery<Todo> TodoQueryCapsule(ICapsuleHandle use) =>
-        _modelContext.Query<Todo>(query => query.OrderBy(_ => _.Task));
+        use.Invoke(ContextCapsule).Query<Todo>(query => query.OrderBy(_ => _.Task));
 
     private (
         Action<Todo> AddTodo,
         Action<Todo> UpdateTodo,
         Action<IEnumerable<Todo>> DeleteTodos)
-        TodoItemsManagerCapsule(ICapsuleHandle use) =>
-        (
+        TodoItemsManagerCapsule(ICapsuleHandle use)
+    {
+        var context = use.Invoke(ContextCapsule);
+
+        return (
             AddTodo: todo =>
             {
-                _modelContext.Add(todo);
-                _modelContext.Save();
+                context.Add(todo);
+                context.Save();
             },
             UpdateTodo: todo =>
             {
-                _modelContext.Replace(todo, new Todo { Id = todo.Id, Task = todo.Task, Done = todo.Done });
-                _modelContext.Save();
+                context.Replace(todo, new Todo { Id = todo.Id, Task = todo.Task, Done = todo.Done });
+                context.Save();
             },
             DeleteTodos: todos =>
             {
-                _modelContext.Delete([..todos]);
-                _modelContext.Save();
-            });
+                context.Delete([.. todos]);
+                context.Save();
+            }
+        );
+    }
 
     private IQuery<Todo> TodoItemsCapsule(ICapsuleHandle use)
     {
