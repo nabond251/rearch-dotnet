@@ -39,11 +39,11 @@ public static class CapsuleWarmUpExtensions
     /// Error, <paramref name="loading"/>, or <paramref name="child"/>
     /// component, based on given states.
     /// </returns>
-    public static Component ToWarmUpComponent<T>(
+    public static VisualNode ToWarmUpComponent<T>(
         this IList<AsyncValue<T>> source,
-        Func<IList<AsyncError<T>>, Component> errorBuilder,
-        Component loading,
-        Component child)
+        Func<IList<AsyncError<T>>, VisualNode> errorBuilder,
+        VisualNode loading,
+        VisualNode child)
     {
         // Check for any errors first
         var asyncErrors = source.OfType<AsyncError<T>>().ToList();
