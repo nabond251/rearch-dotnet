@@ -9,7 +9,7 @@ namespace Rearch.Reactor.Components;
 /// its data.
 /// </summary>
 internal sealed class ComponentHandle(
-    ComponentSideEffectApi api,
+    ComponentSideEffectApiProxy api,
     CapsuleContainer container) : ICapsuleHandle
 {
     private int sideEffectDataIndex;
@@ -17,22 +17,10 @@ internal sealed class ComponentHandle(
     /// <inheritdoc/>
     public T Invoke<T>(Capsule<T> capsule)
     {
-        // Add capsule as dependency
-        var hasCalledBefore = false;
-        var handle = container.Listen(use =>
-        {
-            use.Invoke(capsule); // mark capsule as a dependency
-
-            // If this isn't the immediate call after registering, rebuild
-            if (hasCalledBefore)
-            {
-                api.Rebuild();
-            }
-
-            hasCalledBefore = true;
-        });
-        api.Manager.ListenerHandles.Add(handle);
-
+#pragma warning disable Rearch // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        var dispose = container.OnNextUpdate(capsule, api.Rebuild);
+#pragma warning restore Rearch // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        api.Manager.DependencyDisposers.Add(dispose);
         return container.Read(capsule);
     }
 

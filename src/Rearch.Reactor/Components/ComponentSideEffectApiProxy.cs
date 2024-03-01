@@ -1,4 +1,4 @@
-﻿// <copyright file="ComponentSideEffectApi.cs" company="SdgApps">
+﻿// <copyright file="ComponentSideEffectApiProxy.cs" company="SdgApps">
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
@@ -10,7 +10,7 @@ using MauiReactor;
 /// This is needed so that <see cref="ISideEffectApi.Rebuild"/> doesn't conflict
 /// with <see cref="Component.Render()"/>.
 /// </summary>
-internal sealed class ComponentSideEffectApi(CapsuleConsumer manager) :
+internal sealed class ComponentSideEffectApiProxy(CapsuleConsumer manager) :
     ISideEffectApi
 {
     /// <summary>

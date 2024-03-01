@@ -29,15 +29,17 @@ public abstract partial class CapsuleConsumer : Component
     internal List<object?> SideEffectData { get; } = [];
 
     /// <summary>
-    /// Gets listener handles to dispose.
+    /// Gets a <see cref="HashSet{T}"/> of functions that remove a dependency on
+    /// a <see cref="Capsule{T}"/>.
     /// </summary>
-    internal List<ListenerHandle> ListenerHandles { get; } = [];
+    internal HashSet<Action> DependencyDisposers { get; } = [];
 
     /// <inheritdoc/>
     public sealed override VisualNode Render()
     {
-        // listeners will be repopulated via ComponentHandle
-        this.ClearHandles();
+        // Clears the old dependencies (which will be repopulated via
+        // WidgetHandle)
+        this.ClearDependencies();
 
         var container = this.containerParameter.Value.Container;
         Debug.Assert(
@@ -46,7 +48,7 @@ public abstract partial class CapsuleConsumer : Component
 
         return this.Render(
           new ComponentHandle(
-            new ComponentSideEffectApi(this),
+            new ComponentSideEffectApiProxy(this),
             container));
     }
 
@@ -71,7 +73,7 @@ public abstract partial class CapsuleConsumer : Component
             listener();
         }
 
-        this.ClearHandles();
+        this.ClearDependencies();
 
         // Clean up after any side effects to avoid possible leaks
         this.UnmountListeners.Clear();
@@ -79,13 +81,17 @@ public abstract partial class CapsuleConsumer : Component
         base.OnWillUnmount();
     }
 
-    private void ClearHandles()
+    /// <summary>
+    /// Clears out the <see cref="Capsule{T}"/> dependencies of this
+    /// <see cref="CapsuleConsumer"/>.
+    /// </summary>
+    private void ClearDependencies()
     {
-        foreach (var handle in this.ListenerHandles)
+        foreach (var dispose in this.DependencyDisposers)
         {
-            handle.Dispose();
+            dispose();
         }
 
-        this.ListenerHandles.Clear();
+        this.DependencyDisposers.Clear();
     }
 }

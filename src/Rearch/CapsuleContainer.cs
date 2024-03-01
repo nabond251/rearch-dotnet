@@ -98,6 +98,54 @@ public class CapsuleContainer : IDisposable
     }
 
     /// <summary>
+    /// Runs the supplied <paramref name="callback"/> the next time
+    /// <paramref name="capsule"/> is updated <i>or</i> disposed.
+    /// </summary>
+    /// <typeparam name="T">Type of encapsulated data.</typeparam>
+    /// <param name="capsule">Capsule whose next update to handle.</param>
+    /// <param name="callback">
+    /// Callback to run when <paramref name="capsule"/> is updated <i>or</i>
+    /// disposed.
+    /// </param>
+    /// <returns>
+    /// <see cref="Action"/> which, if invoked, removes the callback.
+    /// </returns>
+    /// <remarks>
+    /// You can also prematurely remove the callback from the container
+    /// via the returned <see cref="Action"/> (which does not invoke
+    /// <paramref name="callback"/>).<br/>
+    /// It is highly recommended not to use this method as I reserve the right
+    /// to breakingly change or remove it at will in a new <i>minor</i> release.
+    /// </remarks>
+#if NET8_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.Experimental("Rearch")]
+#endif
+    public Action OnNextUpdate<T>(
+        Capsule<T> capsule,
+        Action callback)
+    {
+        // This uses the fact that if we add a super pure capsule, it will be
+        // automatically disposed whenever the supplied capsule is
+        // updated/disposed via the super pure gc.
+        object? TempCapsule(ICapsuleHandle use)
+        {
+            use.Invoke(capsule);
+            return null;
+        }
+
+        var manager = new CapsuleManager<object?>(this, TempCapsule);
+        var apiCallback = new SideEffectApiCallback(callback);
+        manager.ToDispose.Add(apiCallback);
+        this.capsules[(object)TempCapsule] = manager;
+
+        return () =>
+        {
+            manager.ToDispose.Remove(apiCallback);
+            manager.Dispose();
+        };
+    }
+
+    /// <summary>
     /// Gets manager for given capsule.
     /// </summary>
     /// <typeparam name="T">Type of encapsulated data.</typeparam>
