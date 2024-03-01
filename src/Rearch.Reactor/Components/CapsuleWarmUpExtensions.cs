@@ -42,8 +42,8 @@ public static class CapsuleWarmUpExtensions
     public static VisualNode ToWarmUpComponent<T>(
         this IList<AsyncValue<T>> source,
         Func<IList<AsyncError<T>>, VisualNode> errorBuilder,
-        VisualNode loading,
-        VisualNode child)
+        Func<VisualNode> loading,
+        Func<VisualNode> child)
     {
         // Check for any errors first
         var asyncErrors = source.OfType<AsyncError<T>>().ToList();
@@ -55,10 +55,10 @@ public static class CapsuleWarmUpExtensions
         // Check to see if we have any still loading
         if (source.Any((value) => value is AsyncLoading<T>))
         {
-            return loading;
+            return loading();
         }
 
         // We have only AsyncData (no loading or error), so return the child
-        return child;
+        return child();
     }
 }

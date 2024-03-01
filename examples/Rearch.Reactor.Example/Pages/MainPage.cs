@@ -9,7 +9,6 @@ using Rearch.Reactor.Example.Models;
 using Rearch.Reactor.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Rearch.Types;
-using Rearch.Reactor.Components;
 
 namespace Rearch.Reactor.Example.Pages;
 
@@ -70,19 +69,17 @@ partial class MainPage : CapsuleConsumer
 
     public override VisualNode Render(ICapsuleHandle use)
     {
-        var todoItems = use.Invoke(TodoItemsCapsule);
-
         return new List<AsyncValue<IModelContext>>
         {
             use.Invoke(ContextWarmUpCapsule)
         }
         .ToWarmUpComponent(
-            child: ContentPage(
+            child: () => ContentPage(
                 Grid("Auto, *, Auto", "*",
                     new TodoEditor(OnCreatedNewTask),
 
                     CollectionView()
-                        .ItemsSource(todoItems, i => new Item(i, OnItemDoneChanged))
+                        .ItemsSource(use.Invoke(TodoItemsCapsule), i => new Item(i, OnItemDoneChanged))
                         .GridRow(1),
 
                     Button("Clear List")
@@ -91,9 +88,11 @@ partial class MainPage : CapsuleConsumer
 
                 )
             ),
-            loading: Label("Loading"),
-            errorBuilder: errors => VStack(
-                children: errors.Select(error => Label(error.Error.ToString())).ToArray()));
+            loading: () => ContentPage(
+                Label("Loading")),
+            errorBuilder: errors => ContentPage(
+                VStack(
+                    children: errors.Select(error => Label(error.Error.ToString())).ToArray())));
 
         void OnItemDoneChanged(Todo item, bool done)
         {
