@@ -540,7 +540,13 @@ public class BasicTest
         await Task
             .WhenAll(Enumerable
             .Range(0, 1000)
-            .Select(_ => Task.Run(container.Read(CounterCapsule).Item2)));
+            .Select(_ => Task.Run(() =>
+            {
+                lock (container)
+                {
+                    container.Read(CounterCapsule).Item2();
+                }
+            })));
 
         Assert.Equal(1000, container.Read(CounterCapsule).Item1);
     }
