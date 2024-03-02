@@ -62,6 +62,10 @@ public static class MauiProgram
             });
 
 
-        return builder.Build();
+        var mauiApp = builder.Build();
+
+        ServiceHelper.Initialize(mauiApp.Services);
+
+        return mauiApp;
     }
 }

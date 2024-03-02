@@ -8,30 +8,39 @@ using Rearch.Reactor.Example.Models;
 using Rearch.Reactor.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Rearch.Types;
-using Rearch.Reactor.Components;
 
 namespace Rearch.Reactor.Example.Pages;
 
-partial class MainPage : CapsuleConsumer
+public static class ServiceHelper
 {
-    private async Task<IModelContext> ContextAsyncCapsule(ICapsuleHandle use) =>
-        await Task.Run(Services.GetRequiredService<IModelContext>);
+    private static readonly TaskCompletionSource<IServiceProvider> serviceProviderTcs = new();
 
-    private AsyncValue<IModelContext> ContextWarmUpCapsule(ICapsuleHandle use)
+    public static Task<IServiceProvider> ServicesAsync => serviceProviderTcs.Task;
+
+    public static void Initialize(IServiceProvider serviceProvider) =>
+        serviceProviderTcs.TrySetResult(serviceProvider);
+}
+
+public static class DataAccess
+{
+    internal static async Task<IModelContext> ContextAsyncCapsule(ICapsuleHandle use) =>
+        (await ServiceHelper.ServicesAsync).GetRequiredService<IModelContext>();
+
+    internal static AsyncValue<IModelContext> ContextWarmUpCapsule(ICapsuleHandle use)
     {
         var task = use.Invoke(ContextAsyncCapsule);
         return use.Task(task);
     }
 
-    private IModelContext ContextCapsule(ICapsuleHandle use) =>
+    internal static IModelContext ContextCapsule(ICapsuleHandle use) =>
         use.Invoke(ContextWarmUpCapsule).GetData().UnwrapOrElse(
             () => throw new InvalidOperationException(
                 "ContextWarmUpCapsule was not warmed up!"));
 
-    private IQuery<Todo> TodoQueryCapsule(ICapsuleHandle use) =>
+    internal static IQuery<Todo> TodoQueryCapsule(ICapsuleHandle use) =>
         use.Invoke(ContextCapsule).Query<Todo>(query => query.OrderBy(_ => _.Task));
 
-    private (
+    internal static (
         Action<Todo> AddTodo,
         Action<Todo> UpdateTodo,
         Action<IEnumerable<Todo>> DeleteTodos)
@@ -58,7 +67,7 @@ partial class MainPage : CapsuleConsumer
         );
     }
 
-    private IQuery<Todo> TodoItemsCapsule(ICapsuleHandle use)
+    internal static IQuery<Todo> TodoItemsCapsule(ICapsuleHandle use)
     {
         var query = use.Invoke(TodoQueryCapsule);
 
@@ -66,17 +75,33 @@ partial class MainPage : CapsuleConsumer
 
         return todos;
     }
+}
 
+partial class MainPage : CapsuleConsumer
+{
     public override VisualNode Render(ICapsuleHandle use)
     {
-        var todoItems = use.Invoke(TodoItemsCapsule);
-
         return new List<AsyncValue<IModelContext>>
         {
-            use.Invoke(ContextWarmUpCapsule)
+            use.Invoke(DataAccess.ContextWarmUpCapsule)
         }
         .ToWarmUpComponent(
-            child: ContentPage(
+            child: new Body(),
+            loading: ContentPage(
+                Label("Loading")),
+            errorBuilder: errors => ContentPage(
+                VStack(
+                    children: errors.Select(error => Label(error.Error.ToString())).ToArray())));
+    }
+}
+
+partial class Body : CapsuleConsumer
+{
+    public override VisualNode Render(ICapsuleHandle use)
+    {
+        var todoItems = use.Invoke(DataAccess.TodoItemsCapsule);
+
+        return ContentPage(
                 Grid("Auto, *, Auto", "*",
                     new TodoEditor(OnCreatedNewTask),
 
@@ -89,14 +114,11 @@ partial class MainPage : CapsuleConsumer
                         .GridRow(2)
 
                 )
-            ),
-            loading: Label("Loading"),
-            errorBuilder: errors => VStack(
-                children: errors.Select(error => Label(error.Error.ToString())).ToArray()));
+            );
 
         void OnItemDoneChanged(Todo item, bool done)
         {
-            var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
+            var (_, UpdateTodo, _) = use.Invoke(DataAccess.TodoItemsManagerCapsule);
 
             item.Done = done;
 
@@ -105,16 +127,16 @@ partial class MainPage : CapsuleConsumer
 
         void OnCreatedNewTask(Todo todo)
         {
-            var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
+            var (AddTodo, _, _) = use.Invoke(DataAccess.TodoItemsManagerCapsule);
 
             AddTodo(todo);
         }
 
         void OnClearList()
         {
-            var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
+            var (_, _, DeleteTodos) = use.Invoke(DataAccess.TodoItemsManagerCapsule);
 
-            var todoItems = use.Invoke(TodoItemsCapsule);
+            var todoItems = use.Invoke(DataAccess.TodoItemsCapsule);
 
             DeleteTodos(todoItems);
         }
