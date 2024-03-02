@@ -518,4 +518,30 @@ public class BasicTest
         Assert.Equal(2, builds[(object)G]);
         Assert.Equal(1, builds[(object)H]);
     }
+
+    /// <summary>
+    /// Multithreaded count example.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Task"/> representing the asynchronous unit test.
+    /// </returns>
+    [Fact]
+    public async Task MultiCountExample()
+    {
+        (int, Action) CounterCapsule(ICapsuleHandle use)
+        {
+            var (count, setCount) = use.State(0);
+
+            return (count, () => setCount(count + 1));
+        }
+
+        using var container = new CapsuleContainer();
+
+        await Task
+            .WhenAll(Enumerable
+            .Range(0, 1000)
+            .Select(_ => Task.Run(container.Read(CounterCapsule).Item2)));
+
+        Assert.Equal(1000, container.Read(CounterCapsule).Item1);
+    }
 }
