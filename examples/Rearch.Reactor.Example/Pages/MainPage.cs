@@ -84,17 +84,31 @@ partial class MainPage : CapsuleConsumer
 {
     public override VisualNode Render(ICapsuleHandle use)
     {
+        return NavigationPage(
+            ContentPage(
+                new GlobalWarmUps(new Body())
+            )
+            .Title("Rearch Todos"));
+    }
+}
+
+partial class GlobalWarmUps(VisualNode child) : CapsuleConsumer
+{
+    public override VisualNode Render(ICapsuleHandle use)
+    {
         return new List<AsyncValue<IModelContext>>
         {
             use.Invoke(DataAccess.ContextWarmUpCapsule)
         }
         .ToWarmUpComponent(
-            child: new Body(),
-            loading: ContentPage(
-                Label("Loading")),
-            errorBuilder: errors => ContentPage(
-                VStack(
-                    children: errors.Select(error => Label(error.Error.ToString())).ToArray())));
+            child: child,
+            loading: Label("Loading").Center(),
+            errorBuilder: errors =>
+            VStack(
+                children: errors
+                .Select(error => Label(error.Error.ToString()))
+                .ToArray())
+            .Center());
     }
 }
 
@@ -104,20 +118,17 @@ partial class Body : CapsuleConsumer
     {
         var todoItems = use.Invoke(DataAccess.TodoItemsCapsule);
 
-        return ContentPage(
-                Grid("Auto, *, Auto", "*",
-                    new TodoEditor(OnCreatedNewTask),
+        return Grid("Auto, *, Auto", "*",
+            new TodoEditor(OnCreatedNewTask),
 
-                    CollectionView()
-                        .ItemsSource(todoItems, i => new Item(i, OnItemDoneChanged))
-                        .GridRow(1),
+            CollectionView()
+                .ItemsSource(todoItems, i => new Item(i, OnItemDoneChanged))
+                .GridRow(1),
 
-                    Button("Clear List")
-                        .OnClicked(OnClearList)
-                        .GridRow(2)
-
-                )
-            );
+            Button("Clear List")
+                .OnClicked(OnClearList)
+                .GridRow(2)
+        );
 
         void OnItemDoneChanged(Todo item, bool done)
         {
