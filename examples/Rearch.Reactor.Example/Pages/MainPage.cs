@@ -86,9 +86,21 @@ partial class MainPage : CapsuleConsumer
     {
         return NavigationPage(
             ContentPage(
+                ToolbarItem("Clear List")
+                .OnClicked(OnClearList),
+
                 new GlobalWarmUps(new Body())
             )
             .Title("Rearch Todos"));
+
+        void OnClearList()
+        {
+            var (_, _, DeleteTodos) = use.Invoke(DataAccess.TodoItemsManagerCapsule);
+
+            var todoItems = use.Invoke(DataAccess.TodoItemsCapsule);
+
+            DeleteTodos(todoItems);
+        }
     }
 }
 
@@ -118,16 +130,12 @@ partial class Body : CapsuleConsumer
     {
         var todoItems = use.Invoke(DataAccess.TodoItemsCapsule);
 
-        return Grid("Auto, *, Auto", "*",
+        return Grid("Auto, *", "*",
             new TodoEditor(OnCreatedNewTask),
 
             CollectionView()
                 .ItemsSource(todoItems, i => new Item(i, OnItemDoneChanged))
-                .GridRow(1),
-
-            Button("Clear List")
-                .OnClicked(OnClearList)
-                .GridRow(2)
+                .GridRow(1)
         );
 
         void OnItemDoneChanged(Todo item, bool done)
@@ -144,15 +152,6 @@ partial class Body : CapsuleConsumer
             var (AddTodo, _, _) = use.Invoke(DataAccess.TodoItemsManagerCapsule);
 
             AddTodo(todo);
-        }
-
-        void OnClearList()
-        {
-            var (_, _, DeleteTodos) = use.Invoke(DataAccess.TodoItemsManagerCapsule);
-
-            var todoItems = use.Invoke(DataAccess.TodoItemsCapsule);
-
-            DeleteTodos(todoItems);
         }
     }
 }
