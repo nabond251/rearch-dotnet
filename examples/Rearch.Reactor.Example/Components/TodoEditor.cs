@@ -19,7 +19,7 @@ internal class TodoEditor(Action<Todo> created) : CapsuleConsumer
                     {
                         created(new Todo
                         {
-                            Task = string.IsNullOrEmpty(state.Value) ?
+                            Title = string.IsNullOrEmpty(state.Value) ?
                                 "New Task" :
                                 state.Value
                         });

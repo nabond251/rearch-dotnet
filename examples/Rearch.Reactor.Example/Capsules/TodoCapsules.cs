@@ -9,9 +9,11 @@ namespace Rearch.Reactor.Example.Capsules;
 
 public static class TodoCapsules
 {
-    internal static IQuery<Todo> TodoQueryCapsule(ICapsuleHandle use) =>
-        use.Invoke(ContextCapsule).Query<Todo>(query => query.OrderBy(_ => _.Task));
-
+    /// <summary>
+    /// Provides a way to create/update and delete todos.
+    /// </summary>
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Actions to add, update, or delete todos.</returns>
     internal static (
         Action<Todo> AddTodo,
         Action<Todo> UpdateTodo,
@@ -28,7 +30,13 @@ public static class TodoCapsules
             },
             UpdateTodo: todo =>
             {
-                context.Replace(todo, new Todo { Id = todo.Id, Task = todo.Task, Done = todo.Done });
+                context.Replace(todo, new Todo
+                {
+                    Id = todo.Id,
+                    Title = todo.Title,
+                    Description = todo.Description,
+                    Completed = todo.Completed
+                });
                 context.Save();
             },
             DeleteTodos: todos =>
@@ -39,12 +47,56 @@ public static class TodoCapsules
         );
     }
 
+    /// <summary>
+    /// Represents the current filter to search with
+    /// (<see cref="string.Empty"/> as a query string represents no current
+    /// query).
+    /// </summary>
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Filter data and actions.</returns>
+    internal static (
+        TodoListFilter Filter,
+        Action<string> SetQueryString,
+        Action ToggleCompletionStatus)
+        FilterCapsule(ICapsuleHandle use)
+    {
+        var (query, setQuery) = use.State(string.Empty);
+        var (completionStatus, setCompletionStatus) = use.State(false);
+        return (
+          new TodoListFilter
+          {
+              Query = query,
+              CompletionStatus = completionStatus,
+          },
+          setQuery,
+          () => setCompletionStatus(!completionStatus)
+        );
+    }
+
+    /// Represents the todos list using the filter from the
+    /// <see cref="FilterCapsule"/>.
     internal static IQuery<Todo> TodoItemsCapsule(ICapsuleHandle use)
     {
-        var query = use.Invoke(TodoQueryCapsule);
+        var context = use.Invoke(ContextCapsule);
+        var (filter, _, _) = use.Invoke(FilterCapsule);
+        var filterQuery = filter.Query;
+        var completionStatus = filter.CompletionStatus;
 
-        var todos = use.Memo(() => query, [query]);
+        // When query is null/empty, it does not affect the search.
+        var todosQuery = use.Memo(
+            () => context.Query<Todo>(
+                query => query
+                .Where(
+                    todo =>
+                    (
+                        todo.Title.Contains(filterQuery, StringComparison.InvariantCultureIgnoreCase) ||
+                        (
+                            todo.Description != null &&
+                            todo.Description.Contains(filterQuery, StringComparison.InvariantCultureIgnoreCase))) &&
+                    todo.Completed == completionStatus)
+                .OrderBy(todo => todo.Id)),
+            [context, filterQuery, completionStatus]);
 
-        return todos;
+        return todosQuery;
     }
 }

@@ -23,7 +23,7 @@ partial class Body : CapsuleConsumer
         {
             var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
 
-            item.Done = done;
+            item.Completed = done;
 
             UpdateTodo(item);
         }

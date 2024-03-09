@@ -10,10 +10,10 @@ internal class Item(Todo item, Action<Todo, bool> onItemDoneChanged) : CapsuleCo
     public override Grid Render(ICapsuleHandle use)
         => Grid("54", "Auto, *",
             CheckBox()
-                .IsChecked(item.Done)
+                .IsChecked(item.Completed)
                 .OnCheckedChanged((s, args) => onItemDoneChanged(item, args.Value)),
-            Label(item.Task)
-                .TextDecorations(item.Done ? TextDecorations.Strikethrough : TextDecorations.None)
+            Label(item.Title)
+                .TextDecorations(item.Completed ? TextDecorations.Strikethrough : TextDecorations.None)
                 .VCenter()
                 .GridColumn(1));
 }
