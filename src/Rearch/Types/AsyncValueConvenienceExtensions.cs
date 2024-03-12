@@ -215,12 +215,8 @@ public static class AsyncValueConvenienceExtensions
         this AsyncValue<T> source,
         Func<T, TResult> selector)
     {
-        return source.Match<AsyncValue<TResult>>(
-            onData: data => new AsyncData<TResult>(selector(data)),
-            onLoading: previousData =>
-                new AsyncLoading<TResult>(previousData.Select(selector)),
-            onError: (error, previousData) =>
-                new AsyncError<TResult>(error, previousData.Select(selector)));
+        return source.SelectMany(
+            data => new AsyncData<TResult>(selector(data)));
     }
 
     /// <summary>
@@ -239,18 +235,19 @@ public static class AsyncValueConvenienceExtensions
         Func<T, AsyncValue<TResult>> selector)
     {
         return source.Match(
-            onData: data => selector(data),
-            onLoading: previousData =>
-                previousData.Match(
-                    onJust: value => selector(value),
-                    onNone: () => new AsyncLoading<TResult>(
-                        new None<TResult>())),
-            onError: (error, previousData) =>
-                previousData.Match(
-                    onJust: value => selector(value),
-                    onNone: () => new AsyncError<TResult>(
-                        error,
-                        new None<TResult>())));
+            onData: outerData => selector(outerData),
+            onLoading: outerPreviousValue => outerPreviousValue.Match(
+                onJust: outerValue => selector(outerValue).Match<AsyncValue<TResult>>(
+                    onData: innerData => new AsyncLoading<TResult>(new Just<TResult>(innerData)),
+                    onLoading: innerPreviousData => new AsyncLoading<TResult>(innerPreviousData),
+                    onError: (error, innerPreviousData) => new AsyncError<TResult>(error, innerPreviousData)),
+                onNone: () => new AsyncLoading<TResult>(new None<TResult>())),
+            onError: (error, outerPreviousValue) => outerPreviousValue.Match(
+                onJust: outerValue => selector(outerValue).Match<AsyncValue<TResult>>(
+                    onData: innerData => new AsyncError<TResult>(error, new Just<TResult>(innerData)),
+                    onLoading: innerPreviousData => new AsyncError<TResult>(error, innerPreviousData),
+                    onError: (error, innerPreviousData) => new AsyncError<TResult>(error, innerPreviousData)),
+                onNone: () => new AsyncError<TResult>(error, new None<TResult>())));
     }
 
     /// <summary>
@@ -279,27 +276,5 @@ public static class AsyncValueConvenienceExtensions
         return source
             .SelectMany(x => maybeSelector(x)
             .Select(y => resultSelector(x, y)));
-    }
-
-    private static AsyncValue<T> Flatten<T>(
-        this AsyncValue<AsyncValue<T>> source)
-    {
-        return source.Match<AsyncValue<T>>(
-            onData: outerData => outerData.Match<AsyncValue<T>>(
-                onData: innerData => new AsyncData<T>(innerData),
-                onLoading: innerPreviousData => new AsyncLoading<T>(innerPreviousData),
-                onError: (error, innerPreviousData) => new AsyncError<T>(error, innerPreviousData)),
-            onLoading: outerPreviousValue => outerPreviousValue.Match<AsyncValue<T>>(
-                onJust: outerValue => outerValue.Match<AsyncValue<T>>(
-                    onData: innerData => new AsyncLoading<T>(new Just<T>(innerData)),
-                    onLoading: innerPreviousData => new AsyncLoading<T>(innerPreviousData),
-                    onError: (error, innerPreviousData) => new AsyncError<T>(error, innerPreviousData)),
-                onNone: () => new AsyncLoading<T>(new None<T>())),
-            onError: (error, outerPreviousValue) => outerPreviousValue.Match<AsyncValue<T>>(
-                onJust: outerValue => outerValue.Match<AsyncValue<T>>(
-                    onData: innerData => new AsyncError<T>(error, new Just<T>(innerData)),
-                    onLoading: innerPreviousData => new AsyncError<T>(error, innerPreviousData),
-                    onError: (error, innerPreviousData) => new AsyncError<T>(error, innerPreviousData)),
-                onNone: () => new AsyncError<T>(error, new None<T>())));
     }
 }
