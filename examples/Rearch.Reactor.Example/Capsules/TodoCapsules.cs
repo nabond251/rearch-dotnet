@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Rearch.Reactor.Example.Models;
 using static Rearch.Reactor.Example.Capsules.ContextCapsules;
+using Rearch.Types;
+using System.Reactive.Linq;
+using System.Collections.Specialized;
 
 namespace Rearch.Reactor.Example.Capsules;
 
@@ -73,9 +76,13 @@ public static class TodoCapsules
         );
     }
 
+    /// <summary>
     /// Represents the todos list using the filter from the
     /// <see cref="FilterCapsule"/>.
-    internal static IQuery<Todo> TodoItemsCapsule(ICapsuleHandle use)
+    /// </summary>
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Query of to-do list items.</returns>
+    internal static IQuery<Todo> TodoQueryCapsule(ICapsuleHandle use)
     {
         var context = use.Invoke(ContextCapsule);
         var (filter, _, _) = use.Invoke(FilterCapsule);
@@ -99,4 +106,23 @@ public static class TodoCapsules
 
         return todosQuery;
     }
+
+    internal static AsyncValue<List<Todo>> TodoListCapsule(ICapsuleHandle use)
+    {
+        var todosQuery = use.Invoke(TodoQueryCapsule);
+
+        var todosObservable = use.Memo(
+            () => Observable
+            .FromEventPattern(
+                (EventHandler<NotifyCollectionChangedEventArgs> ev) => new NotifyCollectionChangedEventHandler(ev),
+                ev => todosQuery.CollectionChanged += ev,
+                ev => todosQuery.CollectionChanged -= ev)
+            .Select(e => (e.Sender as IEnumerable<Todo>)!),
+            [todosQuery]);
+        var todosState = use.Observable(todosObservable);
+        return todosState.Select(todos => todos.ToList());
+    }
+
+    internal static AsyncValue<int> TodoListCountCapsule(ICapsuleHandle use) =>
+        use.Invoke(TodoListCapsule).Select(todos => todos.Count);
 }

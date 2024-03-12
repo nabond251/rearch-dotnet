@@ -2,6 +2,8 @@
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
+using System;
+
 namespace Rearch.Types;
 
 /// <summary>
@@ -74,4 +76,80 @@ public static class MaybeConvenienceExtensions
         source.Match(
             onJust: value => value,
             onNone: () => default!);
+
+    /// <summary>
+    /// Maps a Maybe&lt;T&gt; into a Maybe&lt;TResult&gt; by applying the given
+    /// <paramref name="selector"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of associated immutable value.</typeparam>
+    /// <typeparam name="TResult">Type of resulting immutable value.</typeparam>
+    /// <param name="source">The source of the optional value.</param>
+    /// <param name="selector">The selector to apply.</param>
+    /// <returns>
+    /// <paramref name="source"/> mapped via given <paramref name="selector"/>.
+    /// </returns>
+    /// <remarks>
+    /// Only calls <paramref name="selector"/> when this <see cref="Maybe"/> is
+    /// <see cref="Just{T}"/>.
+    /// </remarks>
+    public static Maybe<TResult> Select<T, TResult>(
+        this Maybe<T> source,
+        Func<T, TResult> selector)
+    {
+        return source.SelectMany(value => new Just<TResult>(selector(value)));
+    }
+
+    /// <summary>
+    /// Maps a Maybe&lt;T&gt; into a Maybe&lt;TResult&gt; by applying the given
+    /// <paramref name="selector"/>, and flattens the result.
+    /// </summary>
+    /// <typeparam name="T">Type of associated immutable value.</typeparam>
+    /// <typeparam name="TResult">Type of resulting immutable value.</typeparam>
+    /// <param name="source">The source of the optional value.</param>
+    /// <param name="selector">The selector to apply.</param>
+    /// <returns>
+    /// <paramref name="source"/> mapped via given <paramref name="selector"/>.
+    /// </returns>
+    /// <remarks>
+    /// Only calls <paramref name="selector"/> when this <see cref="Maybe"/> is
+    /// <see cref="Just{T}"/>.
+    /// </remarks>
+    public static Maybe<TResult> SelectMany<T, TResult>(
+        this Maybe<T> source,
+        Func<T, Maybe<TResult>> selector)
+    {
+        return source.Match(
+            onJust: value => selector(value),
+            onNone: () => new None<TResult>());
+    }
+
+    /// <summary>
+    /// Maps a Maybe&lt;T&gt; into a Maybe&lt;TResult&gt; by applying the given
+    /// <paramref name="maybeSelector"/>, flattens the result, and applies the
+    /// given <paramref name="resultSelector"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of associated immutable value.</typeparam>
+    /// <typeparam name="TMaybe">Type of nested immutable value.</typeparam>
+    /// <typeparam name="TResult">Type of resulting immutable value.</typeparam>
+    /// <param name="source">The source of the optional value.</param>
+    /// <param name="maybeSelector">The selector to apply.</param>
+    /// <param name="resultSelector">The final result selector to apply.</param>
+    /// <returns>
+    /// <paramref name="source"/> mapped via given
+    /// <paramref name="maybeSelector"/>, and then by given
+    /// <paramref name="resultSelector"/>.
+    /// </returns>
+    /// <remarks>
+    /// Only calls <paramref name="maybeSelector"/> when this
+    /// <see cref="Maybe"/> is <see cref="Just{T}"/>.
+    /// </remarks>
+    public static Maybe<TResult> SelectMany<T, TMaybe, TResult>(
+        this Maybe<T> source,
+        Func<T, Maybe<TMaybe>> maybeSelector,
+        Func<T, TMaybe, TResult> resultSelector)
+    {
+        return source
+            .SelectMany(x => maybeSelector(x)
+            .Select(y => resultSelector(x, y)));
+    }
 }

@@ -22,7 +22,7 @@ partial class MainPage : CapsuleConsumer
         {
             var (_, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
 
-            var todoItems = use.Invoke(TodoItemsCapsule);
+            var todoItems = use.Invoke(TodoQueryCapsule);
 
             DeleteTodos(todoItems);
         }

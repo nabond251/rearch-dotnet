@@ -9,7 +9,7 @@ partial class Body : CapsuleConsumer
 {
     public override VisualNode Render(ICapsuleHandle use)
     {
-        var todoItems = use.Invoke(TodoItemsCapsule);
+        var todoItems = use.Invoke(TodoQueryCapsule);
 
         return Grid("Auto, *", "*",
             new TodoEditor(OnCreatedNewTask),
