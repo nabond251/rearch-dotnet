@@ -123,6 +123,11 @@ public static class TodoCapsules
         return todosState.Select(todos => todos.ToList());
     }
 
+    /// <summary>
+    /// Represents the length of the <see cref="TodoListCapsule"/>.
+    /// </summary>
+    /// <param name="use">Capsule handle.</param>
+    /// <returns>Length of todos.</returns>
     internal static AsyncValue<int> TodoListCountCapsule(ICapsuleHandle use) =>
         use.Invoke(TodoListCapsule).Select(todos => todos.Count);
 }

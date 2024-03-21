@@ -9,14 +9,26 @@ partial class MainPage : CapsuleConsumer
 {
     public override VisualNode Render(ICapsuleHandle use)
     {
+        var (
+            filter,
+            _,
+            toggleCompletionStatus) =
+            use.Invoke(FilterCapsule);
+        var completionStatus = filter.CompletionStatus;
+
         return NavigationPage(
             ContentPage(
                 ToolbarItem("Clear List")
                 .OnClicked(OnClearList),
 
+                ToolbarItem(completionStatus ?
+                    "Complete" :
+                    "Incomplete")
+                .OnClicked(toggleCompletionStatus),
+
                 new GlobalWarmUps(new Body())
             )
-            .Title("Rearch Todos"));
+            .Title("rearch todos"));
 
         void OnClearList()
         {
