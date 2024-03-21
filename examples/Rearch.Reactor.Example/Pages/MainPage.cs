@@ -13,7 +13,7 @@ partial class MainPage : CapsuleConsumer
     {
         var (isSearching, setIsSearching) = use.State(false);
 
-        var (_, UpdateTodo, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
+        var (AddTodo, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
 
         var (
             filter,
@@ -36,7 +36,8 @@ partial class MainPage : CapsuleConsumer
                 .OnClicked(() => setIsSearching(!isSearching)),
 
                 ToolbarItem("Edit")
-                .OnClicked(() => ShowCreateTodoDialogAsync(UpdateTodo)),
+                .OnClicked(() => ShowCreateTodoDialogAsync(
+                    ContainerPage, AddTodo)),
 
                 new GlobalWarmUps(new Body())
             )
@@ -50,8 +51,15 @@ partial class MainPage : CapsuleConsumer
         }
     }
 
-    private void ShowCreateTodoDialogAsync(Action<Todo> updateTodo)
+    private void ShowCreateTodoDialogAsync(
+        MauiControls.Page? containerPage,
+        Action<Todo> todoCreator)
     {
-        throw new NotImplementedException();
+        containerPage?.Navigation.PushModalAsync<CreateTodoPage, CreateTodoPageProps>(p => p.TodoCreator = todoCreator);
     }
+}
+
+internal class CreateTodoPageProps()
+{
+    public Action<Todo> TodoCreator { get; set; }
 }
