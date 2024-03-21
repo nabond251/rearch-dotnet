@@ -8,9 +8,11 @@ namespace Rearch.Reactor.Components;
 /// Implementation of the handle given to a <see cref="Capsule{T}"/> to build
 /// its data.
 /// </summary>
-internal sealed class ComponentHandle(
-    ComponentSideEffectApiProxy api,
+/// <typeparam name="TProps">Type of component props.</typeparam>
+internal sealed class ComponentHandle<TProps>(
+    ComponentSideEffectApiProxy<TProps> api,
     CapsuleContainer container) : ICapsuleHandle
+    where TProps : class, new()
 {
     private int sideEffectDataIndex;
 

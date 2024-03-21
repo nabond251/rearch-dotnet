@@ -10,13 +10,15 @@ using MauiReactor;
 /// This is needed so that <see cref="ISideEffectApi.Rebuild"/> doesn't conflict
 /// with <see cref="Component.Render()"/>.
 /// </summary>
-internal sealed class ComponentSideEffectApiProxy(CapsuleConsumer manager) :
-    ISideEffectApi
+/// <typeparam name="TProps">Type of component props.</typeparam>
+internal sealed class ComponentSideEffectApiProxy<TProps>(
+    CapsuleConsumer<TProps> manager) : ISideEffectApi
+    where TProps : class, new()
 {
     /// <summary>
     /// Gets component consuming capsule's data.
     /// </summary>
-    internal CapsuleConsumer Manager { get; } = manager;
+    internal CapsuleConsumer<TProps> Manager { get; } = manager;
 
     /// <inheritdoc/>
     public void Rebuild() => this.Manager.Invalidate();

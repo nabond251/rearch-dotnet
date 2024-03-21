@@ -1,4 +1,4 @@
-// <copyright file="CapsuleConsumer.cs" company="SdgApps">
+// <copyright file="CapsuleConsumer{TProps}.cs" company="SdgApps">
 // Copyright (c) SdgApps. All rights reserved.
 // </copyright>
 
@@ -13,7 +13,9 @@ using MauiReactor.Parameters;
 /// <see cref="ICapsuleHandle"/>, and can consequently consume
 /// <see cref="Capsule{T}"/>s and <see cref="SideEffect{T}"/>s.
 /// </summary>
-public abstract partial class CapsuleConsumer : Component
+/// <typeparam name="TProps">Type of component props.</typeparam>
+public abstract partial class CapsuleConsumer<TProps> : Component<object, TProps>
+    where TProps : class, new()
 {
     [Param]
     private readonly IParameter<CapsuleContainerParameter> containerParameter;
@@ -47,8 +49,8 @@ public abstract partial class CapsuleConsumer : Component
             "No CapsuleContainerProvider found in the component tree!\nDid you forget to add UseRearchReactorApp to MauiProgram?");
 
         return this.Render(
-          new ComponentHandle(
-            new ComponentSideEffectApiProxy(this),
+          new ComponentHandle<TProps>(
+            new ComponentSideEffectApiProxy<TProps>(this),
             container));
     }
 
