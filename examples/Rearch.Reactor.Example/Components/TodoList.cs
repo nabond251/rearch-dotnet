@@ -21,7 +21,7 @@ partial class TodoList : CapsuleConsumer
         {
             return CollectionView().ItemsSource(
                 todoQuery,
-                i => new TodoItem(i, OnItemDoneChanged));
+                i => new TodoItem(i));
         }).AsNullable();
 
         var infoWidget = todoListCount.Match(
@@ -39,14 +39,5 @@ partial class TodoList : CapsuleConsumer
                 [Frame(infoWidget)] :
                 Enumerable.Empty<VisualNode>())
                 .ToArray());
-
-        void OnItemDoneChanged(Todo item, bool done)
-        {
-            var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
-
-            item.Completed = done;
-
-            UpdateTodo(item);
-        }
     }
 }

@@ -20,7 +20,7 @@ public static class TodoCapsules
     internal static (
         Action<Todo> AddTodo,
         Action<Todo> UpdateTodo,
-        Action<IEnumerable<Todo>> DeleteTodos)
+        Action<Todo> DeleteTodo)
         TodoItemsManagerCapsule(ICapsuleHandle use)
     {
         var context = use.Invoke(ContextCapsule);
@@ -42,9 +42,9 @@ public static class TodoCapsules
                 });
                 context.Save();
             },
-            DeleteTodos: todos =>
+            DeleteTodo: todo =>
             {
-                context.Delete([.. todos]);
+                context.Delete(todo);
                 context.Save();
             }
         );

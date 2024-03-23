@@ -13,7 +13,7 @@ partial class MainPage : CapsuleConsumer
     {
         var (isSearching, setIsSearching) = use.State(false);
 
-        var (AddTodo, _, DeleteTodos) = use.Invoke(TodoItemsManagerCapsule);
+        var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
 
         var (
             filter,
@@ -24,9 +24,6 @@ partial class MainPage : CapsuleConsumer
 
         return NavigationPage(
             ContentPage(
-                ToolbarItem("Clear List")
-                .OnClicked(OnClearList),
-
                 ToolbarItem(completionStatus ?
                     "Complete" :
                     "Incomplete")
@@ -42,13 +39,6 @@ partial class MainPage : CapsuleConsumer
                 new GlobalWarmUps(new Body())
             )
             .Title("rearch todos"));
-
-        void OnClearList()
-        {
-            var todoItems = use.Invoke(TodoQueryCapsule);
-
-            DeleteTodos(todoItems);
-        }
     }
 
     private void ShowCreateTodoDialogAsync(
