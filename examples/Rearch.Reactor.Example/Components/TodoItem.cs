@@ -5,7 +5,7 @@ using Rearch.Reactor.Components;
 
 namespace Rearch.Reactor.Example.Components;
 
-internal class Item(Todo item, Action<Todo, bool> onItemDoneChanged) : CapsuleConsumer
+internal class TodoItem(Todo item, Action<Todo, bool> onItemDoneChanged) : CapsuleConsumer
 {
     public override Grid Render(ICapsuleHandle use)
         => Grid("54", "Auto, *",

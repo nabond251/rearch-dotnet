@@ -18,7 +18,7 @@ partial class GlobalWarmUps(VisualNode child) : CapsuleConsumer
         }
         .ToWarmUpComponent(
             child: child,
-            loading: Label("Loading").Center(),
+            loading: Label("Loading...").Center(),
             errorBuilder: errors =>
             VStack(
                 children: errors
