@@ -9,24 +9,12 @@ partial class Body : CapsuleConsumer
 {
     public override VisualNode Render(ICapsuleHandle use)
     {
-        var todoItems = use.Invoke(TodoQueryCapsule);
-
         return Grid("Auto, *", "*",
             new TodoEditor(OnCreatedNewTask),
 
-            CollectionView()
-                .ItemsSource(todoItems, i => new Item(i, OnItemDoneChanged))
-                .GridRow(1)
+            new TodoList()
+            .GridRow(1)
         );
-
-        void OnItemDoneChanged(Todo item, bool done)
-        {
-            var (_, UpdateTodo, _) = use.Invoke(TodoItemsManagerCapsule);
-
-            item.Completed = done;
-
-            UpdateTodo(item);
-        }
 
         void OnCreatedNewTask(Todo todo)
         {
