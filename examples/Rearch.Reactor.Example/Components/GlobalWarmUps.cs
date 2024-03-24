@@ -18,12 +18,12 @@ partial class GlobalWarmUps(VisualNode child) : CapsuleConsumer
         }
         .ToWarmUpComponent(
             child: child,
-            loading: Label("Loading...").Center(),
+            loading: ContentPage(Label("Loading...").Center()),
             errorBuilder: errors =>
-            VStack(
+            ContentPage(VStack(
                 children: errors
                 .Select(error => Label(error.Error.ToString()))
                 .ToArray())
-            .Center());
+            .Center()));
     }
 }
