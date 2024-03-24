@@ -36,12 +36,7 @@ partial class Body : CapsuleConsumer
                 .OnClicked(() => ShowCreateTodoDialogAsync(
                     ContainerPage, AddTodo)),
 
-                Grid("Auto, *", "*",
-                    new TodoEditor(OnCreatedNewTask),
-
-                    new TodoList()
-                    .GridRow(1)
-                )
+                new TodoList()
             )
             .Title("rearch todos")
         );
@@ -51,13 +46,6 @@ partial class Body : CapsuleConsumer
             Action<Todo> todoCreator)
         {
             containerPage?.Navigation.PushModalAsync<CreateTodoPage, CreateTodoPageProps>(p => p.TodoCreator = todoCreator);
-        }
-
-        void OnCreatedNewTask(Todo todo)
-        {
-            var (AddTodo, _, _) = use.Invoke(TodoItemsManagerCapsule);
-
-            AddTodo(todo);
         }
     }
 }
