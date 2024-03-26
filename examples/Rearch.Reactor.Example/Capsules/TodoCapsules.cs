@@ -117,7 +117,8 @@ public static class TodoCapsules
                 (EventHandler<NotifyCollectionChangedEventArgs> ev) => new NotifyCollectionChangedEventHandler(ev),
                 ev => todosQuery.CollectionChanged += ev,
                 ev => todosQuery.CollectionChanged -= ev)
-            .Select(e => (e.Sender as IEnumerable<Todo>)!),
+            .Select(e => (e.Sender as IEnumerable<Todo>)!)
+            .StartWith(todosQuery),
             [todosQuery]);
         var todosState = use.Observable(todosObservable);
         return todosState.Select(todos => todos.ToList());
