@@ -59,7 +59,7 @@ v0.0.0-dev.2
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Reactor.Maui" Version="2.0.37" />
+    <PackageReference Include="Reactor.Maui" Version="2.0.38" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="9.26.0.92422">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
